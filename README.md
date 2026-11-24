@@ -4,6 +4,34 @@
 
 A personal consistency tracker: every habit gets its own GitHub-style contribution graph.
 
+<p align="center">
+  <img src="docs/screenshots/demo.gif" alt="Demo: logging progress, switching to list view, and exploring a habit's yearly heatmap" width="800">
+</p>
+
+## Screenshots
+
+*All screenshots use the built-in sample data.*
+
+**Dashboard.** Every habit at a glance: the last 7 days, current streak, consistency and today's progress.
+
+![Dashboard in grid view](docs/screenshots/dashboard.png)
+
+**Yearly heatmap.** One square per day, colored by how that day went. Hover or tap any day for the details.
+
+![Yearly heatmap with a tooltip](docs/screenshots/heatmap.png)
+
+**List view.** Collapsible rows with the full graph and a quick logger for each habit.
+
+![Dashboard in list view, expanded](docs/screenshots/list-view.png)
+
+**On your phone.**
+
+<p>
+  <img src="docs/screenshots/mobile-dashboard.png" alt="Dashboard on a phone" width="280">
+  &nbsp;
+  <img src="docs/screenshots/mobile-habit.png" alt="Habit page on a phone" width="280">
+</p>
+
 **Status: Phase 2.** React web app + FastAPI/PostgreSQL backend with sign-in, so your habits are saved online and sync across devices. See [DEPLOY.md](./DEPLOY.md) to put it online for free, [DESIGN.md](./DESIGN.md) for the design system and [PLAN.md](./PLAN.md) for the plan.
 
 The web app runs in one of two modes:
