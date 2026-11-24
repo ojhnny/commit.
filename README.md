@@ -1,4 +1,4 @@
-<sub>Looking for the full-stack web app (React + FastAPI + Postgres) instead? It's on the <a href="https://github.com/ojhnny/commit/tree/fullstack"><code>fullstack</code> branch</a>.</sub>
+<sub>Looking for the full-stack web app (React + FastAPI + Postgres) instead? It's on the <a href="https://github.com/ojhnny/commit./tree/fullstack"><code>fullstack</code> branch</a>.</sub>
 
 # commit. for Obsidian
 
@@ -47,12 +47,12 @@ A habit tracker for Obsidian where every habit gets its own GitHub-style contrib
 
 1. In Obsidian, install and enable **BRAT** from **Settings → Community plugins → Browse**.
 2. Run **BRAT: Add a beta plugin for testing** from the command palette (Cmd/Ctrl+P).
-3. Paste `ojhnny/commit` and click **Add plugin**.
+3. Paste `ojhnny/commit.` and click **Add plugin**.
 4. Go to **Settings → Community plugins** and turn on **commit.**
 
 ### Option 2: Manual
 
-1. Open the [latest release](https://github.com/ojhnny/commit/releases/latest) and download `commit-habits.zip`. Or download the three files `main.js`, `manifest.json` and `styles.css` from the release.
+1. Open the [latest release](https://github.com/ojhnny/commit./releases/latest) and download `commit-habits.zip`. Or download the three files `main.js`, `manifest.json` and `styles.css` from the release.
 2. Unzip it. You get a folder named `commit-habits`.
 3. Move that folder into your vault at `<your vault>/.obsidian/plugins/commit-habits/`.
    - `.obsidian` is a hidden folder. On macOS press **Cmd+Shift+.** in Finder to show it. On Windows turn on **View → Show → Hidden items**.
@@ -109,7 +109,7 @@ Everything lives in one file in your vault: **`commit/habits.json`**. You can ch
 
 ## Web app
 
-commit. also exists as a full-stack web app (React, FastAPI and PostgreSQL) with sign-in and sync across browsers. It isn't hosted publicly yet, but you can run it yourself. The code and setup guide are on the [`fullstack` branch](https://github.com/ojhnny/commit/tree/fullstack).
+commit. also exists as a full-stack web app (React, FastAPI and PostgreSQL) with sign-in and sync across browsers. It isn't hosted publicly yet, but you can run it yourself. The code and setup guide are on the [`fullstack` branch](https://github.com/ojhnny/commit./tree/fullstack).
 
 ## License
 
