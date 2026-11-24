@@ -1,0 +1,9 @@
+{
+  "id": "commit-habits",
+  "name": "commit.",
+  "version": "1.0.0",
+  "minAppVersion": "1.5.0",
+  "description": "Build consistency, one day at a time. A habit tracker with a contribution graph for every habit.",
+  "author": "Johnny",
+  "isDesktopOnly": false
+}
