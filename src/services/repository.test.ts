@@ -108,6 +108,16 @@ describe('LocalStorageHabitRepository', () => {
     expect(logs).toHaveLength(0)
   })
 
+  it('round-trips a backup and rejects junk', async () => {
+    const { repo } = make(true)
+    const backup = JSON.parse(JSON.stringify(await repo.exportData()))
+    const other = make().repo
+    await other.importData(backup)
+    expect((await other.load()).logs.length).toBe(backup.logs.length)
+    await expect(other.importData({ hello: 1 })).rejects.toThrow('backup')
+    expect((await other.load()).habits.length).toBe(6)
+  })
+
   it('reports unreadable storage', async () => {
     const storage = createMemoryStorage({ [STORAGE_KEY]: '{oops' })
     const repo = new LocalStorageHabitRepository({ storage })

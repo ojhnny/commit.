@@ -1,5 +1,5 @@
-import { Archive, ChevronDown, ChevronsDownUp, ChevronsUpDown, Database, LayoutGrid, List, ListOrdered, MoreHorizontal, Plus, RotateCcw, Trash2 } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
+import { Archive, ChevronDown, ChevronsDownUp, ChevronsUpDown, Database, Download, Upload, LayoutGrid, List, ListOrdered, LogOut, MoreHorizontal, Plus, RotateCcw, Trash2 } from 'lucide-react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import type { DateKey, Habit, HabitLog } from '@/domain/types'
 import { Button } from '@/components/ui/button'
@@ -20,6 +20,8 @@ import { DaySheet } from '@/components/habits/DaySheet'
 import { Wordmark } from '@/components/layout/Wordmark'
 import { Page } from '@/components/layout/Page'
 import { EmptyState, ErrorView, LoadingView } from '@/components/layout/StateViews'
+import { LocalDataBanner } from '@/components/habits/LocalDataBanner'
+import { useAccount } from '@/state/Account'
 import { useStore } from '@/state/HabitStore'
 import { cn } from '@/lib/utils'
 
@@ -66,6 +68,8 @@ function ViewToggle({ value, onChange }: { value: DashboardView; onChange: (v: D
 
 export function Dashboard() {
   const { status, habits, logsByHabit, today, actions } = useStore()
+  const account = useAccount()
+  const where = account ? 'in your account' : 'in this browser'
   const [creating, setCreating] = useState(false)
   const [quickLog, setQuickLog] = useState<Habit | null>(null)
   const [reordering, setReordering] = useState(false)
@@ -73,6 +77,33 @@ export function Dashboard() {
   const [confirmReset, setConfirmReset] = useState(false)
   const [view, setViewState] = useState<DashboardView>(readView)
   const [expanded, setExpanded] = useState<Set<string>>(() => new Set())
+  const fileRef = useRef<HTMLInputElement>(null)
+  const [pendingImport, setPendingImport] = useState<{ data: unknown; name: string } | null>(null)
+
+  const exportBackup = async () => {
+    const backup = await actions.exportData()
+    if (!backup) return
+    const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `commit-backup-${today}.json`
+    document.body.append(a)
+    a.click()
+    a.remove()
+    setTimeout(() => URL.revokeObjectURL(url), 1000)
+    toast.success('Backup downloaded', { description: `${backup.habits.length} habits, ${backup.logs.length} entries` })
+  }
+
+  const onPickFile = async (file: File | undefined) => {
+    if (!file) return
+    try {
+      setPendingImport({ data: JSON.parse(await file.text()), name: file.name })
+    } catch {
+      toast.error("That file isn't a commit. backup.")
+    }
+    if (fileRef.current) fileRef.current.value = ''
+  }
 
   const setView = (v: DashboardView) => {
     setViewState(v)
@@ -148,7 +179,15 @@ export function Dashboard() {
                       <ListOrdered /> Reorder habits
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
-                    <DropdownMenuLabel>Prototype data</DropdownMenuLabel>
+                    <DropdownMenuLabel>Your data</DropdownMenuLabel>
+                    <DropdownMenuItem onSelect={exportBackup}>
+                      <Download /> Download backup
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onSelect={() => fileRef.current?.click()}>
+                      <Upload /> Restore from backup…
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuLabel>Sample data</DropdownMenuLabel>
                     {hasSample ? (
                       <DropdownMenuItem
                         onSelect={async () => {
@@ -171,6 +210,15 @@ export function Dashboard() {
                     <DropdownMenuItem destructive onSelect={() => setConfirmReset(true)}>
                       <RotateCcw /> Reset all data…
                     </DropdownMenuItem>
+                    {account && (
+                      <>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuLabel className="max-w-[240px] truncate normal-case tracking-normal">{account.user.email}</DropdownMenuLabel>
+                        <DropdownMenuItem onSelect={() => void account.signOut()}>
+                          <LogOut /> Sign out
+                        </DropdownMenuItem>
+                      </>
+                    )}
                   </DropdownMenuContent>
                 </DropdownMenu>
                 <Button variant="primary" onClick={() => setCreating(true)} aria-label="New habit" aria-keyshortcuts="N" title="New habit (N)" className="max-sm:size-11 max-sm:px-0">
@@ -184,6 +232,7 @@ export function Dashboard() {
       </header>
 
       <Page className="pt-4 sm:pt-0">
+        <LocalDataBanner />
         {active.length > 0 && (
           <div className="mb-4 flex items-end justify-between gap-3">
             {reordering ? (
@@ -293,17 +342,41 @@ export function Dashboard() {
         )}
 
         <footer className="mt-12 text-center text-micro text-text-faint">
-          Prototype · Your data is saved in this browser only and doesn't sync between devices.
+          {account
+            ? `Saved to your account (${account.user.email}). Syncs across your devices.`
+            : "Your data is saved in this browser only and doesn't sync between devices."}
         </footer>
       </Page>
 
+      <input
+        ref={fileRef}
+        type="file"
+        accept="application/json,.json"
+        className="hidden"
+        aria-hidden
+        tabIndex={-1}
+        onChange={(e) => void onPickFile(e.target.files?.[0])}
+      />
+      <ConfirmDialog
+        open={pendingImport !== null}
+        onOpenChange={(o) => !o && setPendingImport(null)}
+        title="Restore this backup?"
+        description={`Everything currently ${where} will be replaced with the contents of ${pendingImport?.name ?? 'the file'}.`}
+        confirmLabel="Replace my data"
+        onConfirm={async () => {
+          if (!pendingImport) return
+          const ok = await actions.importData(pendingImport.data)
+          setPendingImport(null)
+          if (ok) toast.success('Backup restored')
+        }}
+      />
       <HabitFormDialog open={creating} onOpenChange={setCreating} />
       {quickLog && <DaySheet habit={quickLog} date={today} onClose={() => setQuickLog(null)} />}
       <ConfirmDialog
         open={confirmReset}
         onOpenChange={setConfirmReset}
         title="Reset all data?"
-        description="This permanently deletes every habit and all logged progress stored in this browser."
+        description={`This permanently deletes every habit and all logged progress stored ${where}.`}
         confirmLabel="Delete everything"
         onConfirm={async () => {
           await actions.resetAll()

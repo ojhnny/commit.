@@ -3,6 +3,7 @@ import { applyGoalChange, normalizeSchedule } from '@/domain/scheduling'
 import type { DateKey, GoalVersion, Habit, HabitLog } from '@/domain/types'
 import { buildSampleData } from './demoData'
 import {
+  type BackupFile,
   RepositoryError,
   type HabitPatch,
   type HabitRepository,
@@ -252,6 +253,26 @@ export class LocalStorageHabitRepository implements HabitRepository {
     state.habits = [...withoutSample, ...sample.habits.map((h) => ({ ...h, order: h.order + offset }))]
     state.logs = [...state.logs.filter((l) => keptIds.has(l.habitId)), ...sample.logs]
     this.write(state)
+  }
+
+  async exportData(): Promise<BackupFile> {
+    const { habits, logs } = this.read()
+    return { app: 'commit', version: 1, exportedAt: this.stamp(), habits, logs }
+  }
+
+  async importData(backup: unknown): Promise<void> {
+    const b = backup as Partial<BackupFile> | null
+    const ok =
+      b !== null &&
+      typeof b === 'object' &&
+      b.app === 'commit' &&
+      b.version === 1 &&
+      Array.isArray(b.habits) &&
+      Array.isArray(b.logs) &&
+      b.habits.every((h) => typeof h?.id === 'string' && typeof h?.name === 'string' && Array.isArray(h?.goalVersions) && h.goalVersions.length > 0) &&
+      b.logs.every((l) => typeof l?.habitId === 'string' && typeof l?.date === 'string' && typeof l?.value === 'number')
+    if (!ok) throw new RepositoryError('invalid', "That file isn't a commit. backup.")
+    this.write({ version: 1, habits: b.habits!, logs: b.logs! })
   }
 
   async resetAll(): Promise<void> {

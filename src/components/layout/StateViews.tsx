@@ -1,11 +1,23 @@
-import type { ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { Button } from '@/components/ui/button'
+import { useAccount } from '@/state/Account'
 import { useStore } from '@/state/HabitStore'
 
 export function LoadingView() {
+  const account = useAccount()
+  const [slow, setSlow] = useState(false)
+  useEffect(() => {
+    const t = window.setTimeout(() => setSlow(true), 4000)
+    return () => window.clearTimeout(t)
+  }, [])
   return (
     <div aria-busy="true" aria-live="polite" className="mx-auto mt-24 flex max-w-sm flex-col gap-3 px-4">
       <span className="sr-only">Loading habits…</span>
+      {account && slow && (
+        <p className="text-center text-small text-text-muted">
+          Waking up the server. On the free plan this can take up to a minute after it has been idle.
+        </p>
+      )}
       {[0, 1, 2].map((i) => (
         <div key={i} className="h-[132px] animate-pulse rounded-lg border border-border bg-surface" />
       ))}
@@ -15,15 +27,22 @@ export function LoadingView() {
 
 export function ErrorView() {
   const { error, actions } = useStore()
+  const account = useAccount()
   return (
     <div role="alert" className="mx-auto mt-24 flex max-w-sm flex-col items-center gap-3 px-4 text-center">
       <p className="text-body font-medium">Couldn't load your habits</p>
       <p className="text-small text-text-muted">{error}</p>
       <div className="mt-2 flex gap-2">
         <Button onClick={() => void actions.reload()}>Try again</Button>
-        <Button variant="danger-ghost" onClick={() => void actions.resetAll()}>
-          Reset saved data
-        </Button>
+        {account ? (
+          <Button variant="ghost" onClick={() => void account.signOut()}>
+            Sign out
+          </Button>
+        ) : (
+          <Button variant="danger-ghost" onClick={() => void actions.resetAll()}>
+            Reset saved data
+          </Button>
+        )}
       </div>
     </div>
   )

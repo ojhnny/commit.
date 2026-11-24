@@ -2,7 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import { toast } from 'sonner'
 import { indexLogs } from '@/domain/progress'
 import type { DateKey, Habit, HabitLog } from '@/domain/types'
-import type { HabitPatch, HabitRepository, LogInput, NewHabitInput } from '@/services/habitRepository'
+import type { BackupFile, HabitPatch, HabitRepository, LogInput, NewHabitInput } from '@/services/habitRepository'
 import { useToday } from '@/hooks/useToday'
 
 type Status = 'loading' | 'ready' | 'error'
@@ -27,6 +27,8 @@ interface StoreValue {
     /** Saves and shows a toast with an Undo action that restores the previous entry. */
     logWithUndo(habitId: string, date: DateKey, input: LogInput, message: string): Promise<boolean>
     clearWithUndo(habitId: string, date: DateKey, message: string): Promise<void>
+    exportData(): Promise<BackupFile | null>
+    importData(backup: unknown): Promise<boolean>
     removeSampleData(): Promise<void>
     loadSampleData(): Promise<void>
     resetAll(): Promise<void>
@@ -72,6 +74,18 @@ export function HabitStoreProvider({ repository, children }: { repository: Habit
 
   useEffect(() => {
     void reload()
+  }, [reload])
+
+  // Pick up changes made on another device when this tab comes back into view.
+  useEffect(() => {
+    let last = Date.now()
+    const onVisible = () => {
+      if (document.visibilityState !== 'visible' || Date.now() - last < 30_000) return
+      last = Date.now()
+      void reload()
+    }
+    document.addEventListener('visibilitychange', onVisible)
+    return () => document.removeEventListener('visibilitychange', onVisible)
   }, [reload])
 
   // Keep multiple tabs in sync.
@@ -125,6 +139,8 @@ export function HabitStoreProvider({ repository, children }: { repository: Habit
         await run(() => repository.deleteLog(habitId, date))
         toast(message, { action: { label: 'Undo', onClick: () => void restore(habitId, date, prev) } })
       },
+      exportData: () => run(() => repository.exportData()),
+      importData: async (backup) => (await run(() => repository.importData(backup).then(() => true))) ?? false,
       removeSampleData: async () => void (await run(() => repository.removeSampleData())),
       loadSampleData: async () => void (await run(() => repository.loadSampleData())),
       resetAll: async () => void (await run(() => repository.resetAll())),

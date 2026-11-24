@@ -24,3 +24,10 @@ dist-ssr
 *.sw?
 dist-static
 artifact
+
+# Backend
+backend/.venv
+__pycache__/
+.pytest_cache
+.ruff_cache
+.env

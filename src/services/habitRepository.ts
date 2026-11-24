@@ -3,9 +3,8 @@ import type { DateKey, GoalVersion, Habit, HabitLog } from '@/domain/types'
 /**
  * Persistence boundary. Components and state never talk to storage directly.
  *
- * The Phase 1 implementation is `LocalStorageHabitRepository`. A later
- * `HttpHabitRepository` can implement the same interface against the FastAPI
- * backend (spec §16) without changing UI code. Methods are async for that reason.
+ * Two implementations: `LocalStorageHabitRepository` (this browser only) and
+ * `HttpHabitRepository` (the FastAPI backend, synced across devices).
  */
 export interface NewHabitInput {
   name: string
@@ -33,6 +32,12 @@ export interface Snapshot {
   logs: HabitLog[]
 }
 
+export interface BackupFile extends Snapshot {
+  app: 'commit'
+  version: 1
+  exportedAt: string
+}
+
 export interface HabitRepository {
   /** Everything at once. Fine for a personal prototype; the API will paginate by range. */
   load(): Promise<Snapshot>
@@ -49,15 +54,22 @@ export interface HabitRepository {
   upsertLog(habitId: string, date: DateKey, input: LogInput): Promise<HabitLog>
   deleteLog(habitId: string, date: DateKey): Promise<void>
 
+  /** Full copy of everything, for backups. */
+  exportData(): Promise<BackupFile>
+  /** Replaces all data with a backup. Throws RepositoryError('invalid') for a bad file. */
+  importData(backup: unknown): Promise<void>
+
   /** Prototype helpers. */
   removeSampleData(): Promise<void>
   loadSampleData(): Promise<void>
   resetAll(): Promise<void>
 }
 
+export type RepositoryErrorCode = 'not-found' | 'invalid' | 'storage' | 'auth' | 'network'
+
 export class RepositoryError extends Error {
-  readonly code: 'not-found' | 'invalid' | 'storage'
-  constructor(code: 'not-found' | 'invalid' | 'storage', message: string) {
+  readonly code: RepositoryErrorCode
+  constructor(code: RepositoryErrorCode, message: string) {
     super(message)
     this.code = code
     this.name = 'RepositoryError'

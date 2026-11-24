@@ -239,3 +239,4 @@ Touch sizing is driven by `pointer: coarse`, not width, so a touch laptop still 
 
 - 2026-11-24 — Initial version for the Phase 1 prototype.
 - 2026-11-24 — Removed "Recent activity" from the habit page (low value; the heatmap and day sheet cover it). Added dashboard List view with collapsible rows, today summary bar, quick-add chips, Undo toasts, yearly count on the heatmap, previous/next habit navigation and the `N` shortcut.
+- 2026-11-24 — Phase 2: added the sign-in screen (wordmark, 4-week heat preview, Sign in / Create account segmented control, single card form, cold-start notice), the "saved only in this browser" banner with Move to account, account email and Sign out in the dashboard ⋯ menu, and account-aware footer and confirm copy. "Prototype data" menu label renamed "Sample data".

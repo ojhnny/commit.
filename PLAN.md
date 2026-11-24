@@ -49,6 +49,15 @@ Everything in `domain/` and `design/tokens.ts` is written to move unchanged into
 6. Playwright pass at 320/390/430/768/1280/1440: overflow, clipping, alignment, flows, persistence. Fix issues.
 7. Report, then stop for approval.
 
-## After approval (not in Phase 1)
+## Phase 2 (approved 2026-11-24): backend and sign-in, done
 
-PWA (manifest, icons, offline), FastAPI + PostgreSQL backend per spec §16, HTTP repository, auth, sync, Expo app sharing `domain/` and tokens.
+- FastAPI + SQLAlchemy 2 + Alembic + PostgreSQL in `backend/`, Docker image and `docker-compose.yml`.
+- Email + password accounts (argon2), bearer-token sessions stored as SHA-256 hashes, `ALLOW_SIGNUP` to close sign-ups.
+- REST: habits (CRUD, archive, restore, reorder), logs per day (PUT upsert, range list), stats per habit, snapshot, export/import, sample data, reset.
+- Rules ported to Python with mirrored tests; 37 backend tests run against real Postgres.
+- Web app: `HttpHabitRepository`, sign-in screen, move browser data into the account, cold-start notice, reload on tab focus for cross-device sync.
+- Free hosting: Vercel (web) + Render (API) + Neon (Postgres). See DEPLOY.md.
+
+## Later
+
+PWA (manifest, icons, offline queue), optimistic updates, password reset by email, Expo app sharing `domain/` and tokens.
