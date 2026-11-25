@@ -1,0 +1,3 @@
+# Built plugin files (kept in the repo for BRAT and manual installs); exclude from language stats
+main.js linguist-generated
+styles.css linguist-generated
