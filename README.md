@@ -86,7 +86,10 @@ A habit tracker for Obsidian where every habit gets its own GitHub-style contrib
    - **Start date:** days before this aren't counted.
 4. **Log progress.** Click a habit to log today. Use **Quick add** for common amounts, **Add** to add to today's total or **Set total** to replace it, and add a note about what you worked on. **Undo** reverts the last change.
 5. **Read your graph.** Hover over or tap any square to see that day. Switch between **Year**, **Month** and **Calendar view** on a habit's page, and between **Grid view** and **List view** on the dashboard.
-6. **Edit or delete** a habit from its page. Changing a goal only applies from today on, so your past days are still judged by the goal you had back then.
+6. **Time it (optional).** Habits measured in minutes or hours have a **Start timer** button next to their title. Pause and resume as often as you like; the timer keeps running if you close the view or restart Obsidian. Press the square to stop, adjust the minutes if you need to, and **Add** puts them on today's total.
+7. **Keep notes.** Press **Notes** on a habit's page to write markdown notes for that habit (see [Notes](#notes) below).
+8. **Organize.** Pick one of eight **colors** in a habit's Edit dialog. **Drag** a habit by the ⋮⋮ grip in its corner to reorder (with a keyboard: focus the grip, then Space and the arrow keys).
+9. **Edit, archive or delete** a habit from its page. Changing a goal only applies from today on, so your past days are still judged by the goal you had back then. The **Archive** button on the dashboard lists archived habits, where you can restore them or delete them for good.
 
 ### What the colors mean
 
@@ -103,11 +106,21 @@ A habit tracker for Obsidian where every habit gets its own GitHub-style contrib
 
 ## Your data
 
-Everything lives in one file in your vault: **`commit/habits.json`**. You can change the path under **Settings → commit. → Data file**.
+Habits and logged progress live in one file in your vault: **`commit/habits.json`**. You can change the path under **Settings → commit. → Data file**.
 
 - **Sync:** it syncs with whatever syncs your vault (Obsidian Sync, iCloud, Dropbox, git). If the file changes on another device, any open commit. views reload by themselves.
 - **Backups:** **Save backup to vault** in the **⋯** menu writes a dated copy to `commit/backups/`. You can change that folder under **Settings → commit. → Backup folder**.
 - **Restore:** **Restore from backup…** in the **⋯** menu loads a backup and replaces your current data.
+- **Timers** are kept on the device they were started on and don't sync.
+
+### Notes
+
+Each habit's notes are normal Markdown files at `commit/notes/<habit name>/<note title>.md` (the root folder is under **Settings → commit. → Notes folder**). Nothing extra is added to the files, so search, links, backlinks and the graph all work, and you can edit a note in Obsidian's own editor (**Open in Obsidian** in the note's ⋯ menu) or inside commit.
+
+- Changing a note's title renames its file, and links to it are updated. Renaming a habit renames its folder.
+- If you move or rename a habit's notes folder in Obsidian, commit. follows it.
+- Deleting a note or a habit moves the files to the trash, following Obsidian's "Deleted files" setting.
+- Backups saved to the vault contain habits and logs only, since the notes are already files.
 
 ## Commands
 
@@ -117,6 +130,21 @@ Everything lives in one file in your vault: **`commit/habits.json`**. You can ch
 | **commit.: Open habits in a new tab** | Open it in a separate tab |
 | **commit.: Open habits in the right sidebar** | Keep it docked next to your notes |
 | **N** (inside the view) | New habit |
+
+## Build from source
+
+Requires Node 20+.
+
+```bash
+npm install
+npm test                    # domain, repository and vault storage tests
+npm run build               # type-checks, then writes dist/commit-habits/ (main.js, manifest.json, styles.css)
+node scripts/harness.mjs    # builds harness-out/, a browser page that runs the plugin against a mocked Obsidian API
+```
+
+`src/domain`, `src/components`, `src/pages` and `src/state` are shared with the web app. The Obsidian-specific parts are `src/obsidian/` (plugin, view, vault JSON storage, notes as vault files) and `src/platform/` (portal target, backups, shortcut scope). `scripts/build.mjs` compiles Tailwind and scopes every rule under `.commit-root`, so nothing leaks into Obsidian or your theme.
+
+The `main.js`, `manifest.json` and `styles.css` at the root of this branch are the built plugin, kept in the repo so it can be installed straight from here.
 
 ## Web app
 

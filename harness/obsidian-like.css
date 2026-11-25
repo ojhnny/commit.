@@ -1,0 +1,14 @@
+/* Hostile host styles roughly like Obsidian's app.css, to prove the plugin's CSS wins. */
+html, body { margin:0; height:100%; font-family: Inter, sans-serif; font-size: 16px; background:#1e1e1e; color:#dadada; }
+.app { display:flex; height:100vh; }
+.side { width: var(--side, 260px); background:#262626; padding:12px; color:#999; border-right:1px solid #333; flex-shrink:0 }
+.pane { flex:1; min-width:0; display:flex; flex-direction:column; }
+.workspace-leaf-content { flex:1; display:flex; flex-direction:column; min-height:0; }
+.view-content { flex:1; padding: 16px; overflow:auto; }
+button:not(.clickable-icon) { background:#363636; color:#ddd; border:1px solid #555; border-radius:4px; padding: 4px 18px; height: 30px; box-shadow: 0 1px 3px rgba(0,0,0,.5); font-size: 15px; margin: 2px; }
+input[type='text'], input[type='number'], input[type='date'], textarea { background:#2a2a2a; border:1px solid #666; padding: 6px 12px; border-radius: 4px; font-size: 16px; }
+input[type='text']:focus { box-shadow: 0 0 0 2px #7f6df2; border-color: #7f6df2; }
+h1, h2 { font-size: 2em; color: #fff; margin: 20px 0; }
+p { margin: 1em 0; }
+ul { padding-left: 2em; }
+a { color: #7f6df2; text-decoration: underline; }

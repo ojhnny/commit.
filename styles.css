@@ -13,6 +13,7 @@
     --font-weight-semibold: 600;
     --tracking-tight: -0.025em;
     --tracking-wide: 0.025em;
+    --radius-sm: 4px;
     --radius-md: 6px;
     --radius-lg: 8px;
     --radius-xl: 12px;
@@ -34,6 +35,7 @@
     --color-green: #2DA44E;
     --color-danger: #E5534B;
     --color-danger-strong: #C0392F;
+    --color-timer: #E8713F;
     --color-heat-empty: #25282D;
     --color-heat-missed: #DA8B36;
     --color-heat-partial: #397C46;
@@ -259,6 +261,9 @@
 .commit-root:not(#commit-scope) .z-10 {
     z-index: 10;
   }
+.commit-root:not(#commit-scope) .z-20 {
+    z-index: 20;
+  }
 .commit-root:not(#commit-scope) .z-30 {
     z-index: 30;
   }
@@ -286,11 +291,17 @@
 .commit-root:not(#commit-scope) .mx-auto {
     margin-inline: auto;
   }
+.commit-root:not(#commit-scope) .-my-1 {
+    margin-block: calc(var(--spacing) * -1);
+  }
 .commit-root:not(#commit-scope) .my-1 {
     margin-block: var(--spacing);
   }
 .commit-root:not(#commit-scope) .-mt-1 {
     margin-top: calc(var(--spacing) * -1);
+  }
+.commit-root:not(#commit-scope) .-mt-1\.5 {
+    margin-top: calc(var(--spacing) * -1.5);
   }
 .commit-root:not(#commit-scope) .mt-0\.5 {
     margin-top: calc(var(--spacing) * 0.5);
@@ -309,6 +320,9 @@
   }
 .commit-root:not(#commit-scope) .mt-5 {
     margin-top: calc(var(--spacing) * 5);
+  }
+.commit-root:not(#commit-scope) .mt-6 {
+    margin-top: calc(var(--spacing) * 6);
   }
 .commit-root:not(#commit-scope) .mt-8 {
     margin-top: calc(var(--spacing) * 8);
@@ -331,6 +345,12 @@
 .commit-root:not(#commit-scope) .mr-0\.5 {
     margin-right: calc(var(--spacing) * 0.5);
   }
+.commit-root:not(#commit-scope) .mr-1 {
+    margin-right: var(--spacing);
+  }
+.commit-root:not(#commit-scope) .mr-2 {
+    margin-right: calc(var(--spacing) * 2);
+  }
 .commit-root:not(#commit-scope) .mb-1 {
     margin-bottom: var(--spacing);
   }
@@ -348,6 +368,9 @@
   }
 .commit-root:not(#commit-scope) .ml-1 {
     margin-left: var(--spacing);
+  }
+.commit-root:not(#commit-scope) .ml-1\.5 {
+    margin-left: calc(var(--spacing) * 1.5);
   }
 .commit-root:not(#commit-scope) .ml-2 {
     margin-left: calc(var(--spacing) * 2);
@@ -385,6 +408,10 @@
 .commit-root:not(#commit-scope) .inline-flex {
     display: inline-flex;
   }
+.commit-root:not(#commit-scope) .size-1\.5 {
+    width: calc(var(--spacing) * 1.5);
+    height: calc(var(--spacing) * 1.5);
+  }
 .commit-root:not(#commit-scope) .size-2 {
     width: calc(var(--spacing) * 2);
     height: calc(var(--spacing) * 2);
@@ -396,6 +423,10 @@
 .commit-root:not(#commit-scope) .size-3\.5 {
     width: calc(var(--spacing) * 3.5);
     height: calc(var(--spacing) * 3.5);
+  }
+.commit-root:not(#commit-scope) .size-3\.5\! {
+    width: calc(var(--spacing) * 3.5) !important;
+    height: calc(var(--spacing) * 3.5) !important;
   }
 .commit-root:not(#commit-scope) .size-4 {
     width: calc(var(--spacing) * 4);
@@ -444,6 +475,9 @@
 .commit-root:not(#commit-scope) .h-9 {
     height: calc(var(--spacing) * 9);
   }
+.commit-root:not(#commit-scope) .h-10 {
+    height: calc(var(--spacing) * 10);
+  }
 .commit-root:not(#commit-scope) .h-11 {
     height: calc(var(--spacing) * 11);
   }
@@ -486,11 +520,17 @@
 .commit-root:not(#commit-scope) .min-h-\[72px\] {
     min-height: 72px;
   }
+.commit-root:not(#commit-scope) .min-h-\[320px\] {
+    min-height: 320px;
+  }
 .commit-root:not(#commit-scope) .w-9 {
     width: calc(var(--spacing) * 9);
   }
 .commit-root:not(#commit-scope) .w-11 {
     width: calc(var(--spacing) * 11);
+  }
+.commit-root:not(#commit-scope) .w-20 {
+    width: calc(var(--spacing) * 20);
   }
 .commit-root:not(#commit-scope) .w-\[calc\(100vw-32px\)\] {
     width: calc(100vw - 32px);
@@ -524,6 +564,9 @@
   }
 .commit-root:not(#commit-scope) .max-w-\[640px\] {
     max-width: 640px;
+  }
+.commit-root:not(#commit-scope) .max-w-\[720px\] {
+    max-width: 720px;
   }
 .commit-root:not(#commit-scope) .max-w-\[1040px\] {
     max-width: 1040px;
@@ -564,8 +607,11 @@
 .commit-root:not(#commit-scope) .-rotate-90 {
     rotate: calc(90deg * -1);
   }
-.commit-root:not(#commit-scope) .rotate-180 {
-    rotate: 180deg;
+.commit-root:not(#commit-scope) .transform {
+    transform: var(--tw-rotate-x, ) var(--tw-rotate-y, ) var(--tw-rotate-z, ) var(--tw-skew-x, ) var(--tw-skew-y, );
+  }
+.commit-root:not(#commit-scope) .animate-\[pulse_2s_ease-in-out_infinite\] {
+    animation: pulse 2s ease-in-out infinite;
   }
 .commit-root:not(#commit-scope) .animate-fade-in {
     animation: var(--animate-fade-in);
@@ -576,8 +622,17 @@
 .commit-root:not(#commit-scope) .cursor-default {
     cursor: default;
   }
+.commit-root:not(#commit-scope) .cursor-grab {
+    cursor: grab;
+  }
+.commit-root:not(#commit-scope) .cursor-grabbing {
+    cursor: grabbing;
+  }
 .commit-root:not(#commit-scope) .cursor-pointer {
     cursor: pointer;
+  }
+.commit-root:not(#commit-scope) .touch-none {
+    touch-action: none;
   }
 .commit-root:not(#commit-scope) .resize-none {
     resize: none;
@@ -643,6 +698,9 @@
 .commit-root:not(#commit-scope) .gap-2 {
     gap: calc(var(--spacing) * 2);
   }
+.commit-root:not(#commit-scope) .gap-2\.5 {
+    gap: calc(var(--spacing) * 2.5);
+  }
 .commit-root:not(#commit-scope) .gap-3 {
     gap: calc(var(--spacing) * 3);
   }
@@ -673,6 +731,16 @@
 .commit-root:not(#commit-scope) .gap-y-2 {
     row-gap: calc(var(--spacing) * 2);
   }
+.commit-root:not(#commit-scope) :where(.divide-y > :not(:last-child)) {
+    --tw-divide-y-reverse: 0;
+    border-bottom-style: var(--tw-border-style);
+    border-top-style: var(--tw-border-style);
+    border-top-width: calc(1px * var(--tw-divide-y-reverse));
+    border-bottom-width: calc(1px * calc(1 - var(--tw-divide-y-reverse)));
+  }
+.commit-root:not(#commit-scope) :where(.divide-border-subtle > :not(:last-child)) {
+    border-color: var(--color-border-subtle);
+  }
 .commit-root:not(#commit-scope) .self-start {
     align-self: flex-start;
   }
@@ -696,6 +764,9 @@
 .commit-root:not(#commit-scope) .\!rounded-lg {
     border-radius: var(--radius-lg) !important;
   }
+.commit-root:not(#commit-scope) .rounded {
+    border-radius: 4px;
+  }
 .commit-root:not(#commit-scope) .rounded-\[2px\] {
     border-radius: 2px;
   }
@@ -717,6 +788,9 @@
 .commit-root:not(#commit-scope) .rounded-md {
     border-radius: var(--radius-md);
   }
+.commit-root:not(#commit-scope) .rounded-sm {
+    border-radius: var(--radius-sm);
+  }
 .commit-root:not(#commit-scope) .rounded-xl {
     border-radius: var(--radius-xl);
   }
@@ -731,6 +805,10 @@
 .commit-root:not(#commit-scope) .border {
     border-style: var(--tw-border-style);
     border-width: 1px;
+  }
+.commit-root:not(#commit-scope) .border-0 {
+    border-style: var(--tw-border-style);
+    border-width: 0px;
   }
 .commit-root:not(#commit-scope) .border-t {
     border-top-style: var(--tw-border-style);
@@ -840,8 +918,17 @@
 .commit-root:not(#commit-scope) .bg-text {
     background-color: var(--color-text);
   }
+.commit-root:not(#commit-scope) .bg-text-faint {
+    background-color: var(--color-text-faint);
+  }
+.commit-root:not(#commit-scope) .bg-timer {
+    background-color: var(--color-timer);
+  }
 .commit-root:not(#commit-scope) .bg-transparent {
     background-color: transparent;
+  }
+.commit-root:not(#commit-scope) .fill-current {
+    fill: currentcolor;
   }
 .commit-root:not(#commit-scope) .p-0 {
     padding: 0px;
@@ -879,6 +966,9 @@
 .commit-root:not(#commit-scope) .px-6 {
     padding-inline: calc(var(--spacing) * 6);
   }
+.commit-root:not(#commit-scope) .py-1 {
+    padding-block: var(--spacing);
+  }
 .commit-root:not(#commit-scope) .py-1\.5 {
     padding-block: calc(var(--spacing) * 1.5);
   }
@@ -890,6 +980,9 @@
   }
 .commit-root:not(#commit-scope) .py-3 {
     padding-block: calc(var(--spacing) * 3);
+  }
+.commit-root:not(#commit-scope) .py-4 {
+    padding-block: calc(var(--spacing) * 4);
   }
 .commit-root:not(#commit-scope) .py-14 {
     padding-block: calc(var(--spacing) * 14);
@@ -924,8 +1017,14 @@
 .commit-root:not(#commit-scope) .pt-safe {
     padding-top: 0;
   }
+.commit-root:not(#commit-scope) .pr-1 {
+    padding-right: var(--spacing);
+  }
 .commit-root:not(#commit-scope) .pr-2 {
     padding-right: calc(var(--spacing) * 2);
+  }
+.commit-root:not(#commit-scope) .pr-4 {
+    padding-right: calc(var(--spacing) * 4);
   }
 .commit-root:not(#commit-scope) .pr-8 {
     padding-right: calc(var(--spacing) * 8);
@@ -956,6 +1055,12 @@
   }
 .commit-root:not(#commit-scope) .pl-3 {
     padding-left: calc(var(--spacing) * 3);
+  }
+.commit-root:not(#commit-scope) .pl-3\.5 {
+    padding-left: calc(var(--spacing) * 3.5);
+  }
+.commit-root:not(#commit-scope) .pl-4 {
+    padding-left: calc(var(--spacing) * 4);
   }
 .commit-root:not(#commit-scope) .text-center {
     text-align: center;
@@ -1000,6 +1105,9 @@
 .commit-root:not(#commit-scope) .text-\[20px\] {
     font-size: 20px;
   }
+.commit-root:not(#commit-scope) .text-\[36px\] {
+    font-size: 36px;
+  }
 .commit-root:not(#commit-scope) .leading-5 {
     --tw-leading: calc(var(--spacing) * 5);
     line-height: calc(var(--spacing) * 5);
@@ -1015,6 +1123,10 @@
 .commit-root:not(#commit-scope) .leading-\[14px\] {
     --tw-leading: 14px;
     line-height: 14px;
+  }
+.commit-root:not(#commit-scope) .leading-\[22px\] {
+    --tw-leading: 22px;
+    line-height: 22px;
   }
 .commit-root:not(#commit-scope) .leading-none {
     --tw-leading: 1;
@@ -1082,6 +1194,9 @@
 .commit-root:not(#commit-scope) .text-text-muted {
     color: var(--color-text-muted);
   }
+.commit-root:not(#commit-scope) .text-timer {
+    color: var(--color-timer);
+  }
 .commit-root:not(#commit-scope) .text-white {
     color: var(--color-white);
   }
@@ -1125,8 +1240,15 @@
     --tw-ring-shadow: var(--tw-ring-inset, ) 0 0 0 calc(1px + var(--tw-ring-offset-width)) var(--tw-ring-color, currentcolor);
     box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
   }
+.commit-root:not(#commit-scope) .ring-2 {
+    --tw-ring-shadow: var(--tw-ring-inset, ) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color, currentcolor);
+    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
+  }
 .commit-root:not(#commit-scope) .ring-border {
     --tw-ring-color: var(--color-border);
+  }
+.commit-root:not(#commit-scope) .ring-text {
+    --tw-ring-color: var(--color-text);
   }
 .commit-root:not(#commit-scope) .ring-text-faint {
     --tw-ring-color: var(--color-text-faint);
@@ -1136,6 +1258,10 @@
   }
 .commit-root:not(#commit-scope) .ring-offset-1 {
     --tw-ring-offset-width: 1px;
+    --tw-ring-offset-shadow: var(--tw-ring-inset, ) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);
+  }
+.commit-root:not(#commit-scope) .ring-offset-2 {
+    --tw-ring-offset-width: 2px;
     --tw-ring-offset-shadow: var(--tw-ring-inset, ) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);
   }
 .commit-root:not(#commit-scope) .ring-offset-surface {
@@ -1150,6 +1276,11 @@
     -webkit-backdrop-filter: var(--tw-backdrop-blur, ) var(--tw-backdrop-brightness, ) var(--tw-backdrop-contrast, ) var(--tw-backdrop-grayscale, ) var(--tw-backdrop-hue-rotate, ) var(--tw-backdrop-invert, ) var(--tw-backdrop-opacity, ) var(--tw-backdrop-saturate, ) var(--tw-backdrop-sepia, );
     backdrop-filter: var(--tw-backdrop-blur, ) var(--tw-backdrop-brightness, ) var(--tw-backdrop-contrast, ) var(--tw-backdrop-grayscale, ) var(--tw-backdrop-hue-rotate, ) var(--tw-backdrop-invert, ) var(--tw-backdrop-opacity, ) var(--tw-backdrop-saturate, ) var(--tw-backdrop-sepia, );
   }
+.commit-root:not(#commit-scope) .transition {
+    transition-property: color, background-color, border-color, outline-color, text-decoration-color, fill, stroke, --tw-gradient-from, --tw-gradient-via, --tw-gradient-to, opacity, box-shadow, transform, translate, scale, rotate, filter, -webkit-backdrop-filter, backdrop-filter, display, content-visibility, overlay, pointer-events;
+    transition-timing-function: var(--tw-ease, var(--default-transition-timing-function));
+    transition-duration: var(--tw-duration, var(--default-transition-duration));
+  }
 .commit-root:not(#commit-scope) .transition-\[filter\] {
     transition-property: filter;
     transition-timing-function: var(--tw-ease, var(--default-transition-timing-function));
@@ -1162,6 +1293,11 @@
   }
 .commit-root:not(#commit-scope) .transition-colors {
     transition-property: color, background-color, border-color, outline-color, text-decoration-color, fill, stroke, --tw-gradient-from, --tw-gradient-via, --tw-gradient-to;
+    transition-timing-function: var(--tw-ease, var(--default-transition-timing-function));
+    transition-duration: var(--tw-duration, var(--default-transition-duration));
+  }
+.commit-root:not(#commit-scope) .transition-shadow {
+    transition-property: box-shadow;
     transition-timing-function: var(--tw-ease, var(--default-transition-timing-function));
     transition-duration: var(--tw-duration, var(--default-transition-duration));
   }
@@ -1265,14 +1401,35 @@
     .commit-root:not(#commit-scope) .hover\:bg-surface-3:hover {
       background-color: var(--color-surface-3);
     }
+    .commit-root:not(#commit-scope) .hover\:bg-timer\/90:hover {
+      background-color: color-mix(in srgb, #E8713F 90%, transparent);
+    }
+    @supports (color: color-mix(in lab, red, red)) {
+      .commit-root:not(#commit-scope) .hover\:bg-timer\/90:hover {
+        background-color: color-mix(in oklab, var(--color-timer) 90%, transparent);
+      }
+    }
     .commit-root:not(#commit-scope) .hover\:bg-white:hover {
       background-color: var(--color-white);
     }
     .commit-root:not(#commit-scope) .hover\:text-text:hover {
       color: var(--color-text);
     }
+    .commit-root:not(#commit-scope) .hover\:text-text-muted:hover {
+      color: var(--color-text-muted);
+    }
+    .commit-root:not(#commit-scope) .hover\:text-timer:hover {
+      color: var(--color-timer);
+    }
     .commit-root:not(#commit-scope) .hover\:underline:hover {
       text-decoration-line: underline;
+    }
+    .commit-root:not(#commit-scope) .hover\:ring-2:hover {
+      --tw-ring-shadow: var(--tw-ring-inset, ) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color, currentcolor);
+      box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
+    }
+    .commit-root:not(#commit-scope) .hover\:ring-border:hover {
+      --tw-ring-color: var(--color-border);
     }
     .commit-root:not(#commit-scope) .hover\:brightness-125:hover {
       --tw-brightness: brightness(125%);
@@ -1331,11 +1488,20 @@
     outline-style: var(--tw-outline-style);
     outline-width: 2px;
   }
+.commit-root:not(#commit-scope) .has-\[a\:focus-visible\]\:-outline-offset-2:has(:is(a:focus-visible)) {
+    outline-offset: calc(2px * -1);
+  }
 .commit-root:not(#commit-scope) .has-\[a\:focus-visible\]\:outline-offset-2:has(:is(a:focus-visible)) {
     outline-offset: 2px;
   }
 .commit-root:not(#commit-scope) .has-\[a\:focus-visible\]\:outline-green:has(:is(a:focus-visible)) {
     outline-color: var(--color-green);
+  }
+.commit-root:not(#commit-scope) .aria-pressed\:bg-surface-3[aria-pressed="true"] {
+    background-color: var(--color-surface-3);
+  }
+.commit-root:not(#commit-scope) .aria-pressed\:text-text[aria-pressed="true"] {
+    color: var(--color-text);
   }
 .commit-root:not(#commit-scope) .aria-\[invalid\=true\]\:border-danger\/70[aria-invalid="true"] {
     border-color: color-mix(in srgb, #E5534B 70%, transparent);
@@ -1361,7 +1527,23 @@
 .commit-root:not(#commit-scope) .data-\[state\=open\]\:animate-pop-in[data-state="open"] {
     animation: var(--animate-pop-in);
   }
+@media (prefers-reduced-motion: reduce) {
+    .commit-root:not(#commit-scope) .motion-reduce\:animate-none {
+      animation: none;
+    }
+  }
 @container commit (width < 379px) {
+    .commit-root:not(#commit-scope) .max-\[379px\]\:sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+      border-width: 0;
+    }
     .commit-root:not(#commit-scope) .max-\[379px\]\:hidden {
       display: none;
     }
@@ -1378,12 +1560,27 @@
       white-space: nowrap;
       border-width: 0;
     }
+    .commit-root:not(#commit-scope) .max-sm\:mr-auto {
+      margin-right: auto;
+    }
+    .commit-root:not(#commit-scope) .max-sm\:flex {
+      display: flex;
+    }
     .commit-root:not(#commit-scope) .max-sm\:hidden {
       display: none;
     }
     .commit-root:not(#commit-scope) .max-sm\:size-11 {
       width: calc(var(--spacing) * 11);
       height: calc(var(--spacing) * 11);
+    }
+    .commit-root:not(#commit-scope) .max-sm\:h-11 {
+      height: calc(var(--spacing) * 11);
+    }
+    .commit-root:not(#commit-scope) .max-sm\:w-full {
+      width: 100%;
+    }
+    .commit-root:not(#commit-scope) .max-sm\:flex-1 {
+      flex: 1;
     }
     .commit-root:not(#commit-scope) .max-sm\:px-0 {
       padding-inline: 0px;
@@ -1394,9 +1591,17 @@
       display: flex;
     }
   }
+@container commit (width >= 380px) {
+    .commit-root:not(#commit-scope) .min-\[380px\]\:hidden {
+      display: none;
+    }
+  }
 @container commit (width >= 640px) {
     .commit-root:not(#commit-scope) .sm\:static {
       position: static;
+    }
+    .commit-root:not(#commit-scope) .sm\:mr-auto {
+      margin-right: auto;
     }
     .commit-root:not(#commit-scope) .sm\:block {
       display: block;
@@ -1413,8 +1618,20 @@
     .commit-root:not(#commit-scope) .sm\:flex-row {
       flex-direction: row;
     }
+    .commit-root:not(#commit-scope) .sm\:items-center {
+      align-items: center;
+    }
+    .commit-root:not(#commit-scope) .sm\:items-start {
+      align-items: flex-start;
+    }
+    .commit-root:not(#commit-scope) .sm\:justify-between {
+      justify-content: space-between;
+    }
     .commit-root:not(#commit-scope) .sm\:justify-end {
       justify-content: flex-end;
+    }
+    .commit-root:not(#commit-scope) .sm\:gap-4 {
+      gap: calc(var(--spacing) * 4);
     }
     .commit-root:not(#commit-scope) .sm\:gap-6 {
       gap: calc(var(--spacing) * 6);
@@ -1429,11 +1646,17 @@
     .commit-root:not(#commit-scope) .sm\:p-6 {
       padding: calc(var(--spacing) * 6);
     }
+    .commit-root:not(#commit-scope) .sm\:px-2 {
+      padding-inline: calc(var(--spacing) * 2);
+    }
     .commit-root:not(#commit-scope) .sm\:px-3 {
       padding-inline: calc(var(--spacing) * 3);
     }
     .commit-root:not(#commit-scope) .sm\:px-4 {
       padding-inline: calc(var(--spacing) * 4);
+    }
+    .commit-root:not(#commit-scope) .sm\:px-5 {
+      padding-inline: calc(var(--spacing) * 5);
     }
     .commit-root:not(#commit-scope) .sm\:px-6 {
       padding-inline: calc(var(--spacing) * 6);
@@ -1441,11 +1664,17 @@
     .commit-root:not(#commit-scope) .sm\:pt-0 {
       padding-top: 0px;
     }
+    .commit-root:not(#commit-scope) .sm\:pt-5 {
+      padding-top: calc(var(--spacing) * 5);
+    }
     .commit-root:not(#commit-scope) .sm\:pt-6 {
       padding-top: calc(var(--spacing) * 6);
     }
     .commit-root:not(#commit-scope) .sm\:pt-8 {
       padding-top: calc(var(--spacing) * 8);
+    }
+    .commit-root:not(#commit-scope) .sm\:pr-3 {
+      padding-right: calc(var(--spacing) * 3);
     }
     .commit-root:not(#commit-scope) .sm\:pb-6 {
       padding-bottom: calc(var(--spacing) * 6);
@@ -1524,6 +1753,143 @@
 .commit-root:not(#commit-scope) .\[\&_svg\]\:text-text-muted svg {
     color: var(--color-text-muted);
   }
+.commit-root:not(#commit-scope) .\[\&\>\*\]\:border-\[\#4a4e57\] > * {
+    border-color: #4a4e57;
+  }
+.commit-root:not(#commit-scope) .\[\&\>\*\]\:shadow-\[0_8px_24px_rgb\(0_0_0\/0\.45\)\] > * {
+    --tw-shadow: 0 8px 24px var(--tw-shadow-color, rgb(0 0 0/0.45));
+    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
+  }
+.commit-root:not(#commit-scope) .commit-prose {
+  font-size: 14px;
+  line-height: 22px;
+  color: var(--color-text);
+  overflow-wrap: anywhere;
+}
+.commit-root:not(#commit-scope) .commit-prose > * + * {
+  margin-top: 12px;
+}
+.commit-root:not(#commit-scope) .commit-prose h1, .commit-root:not(#commit-scope) .commit-prose h2, .commit-root:not(#commit-scope) .commit-prose h3, .commit-root:not(#commit-scope) .commit-prose h4, .commit-root:not(#commit-scope) .commit-prose h5, .commit-root:not(#commit-scope) .commit-prose h6 {
+  color: var(--color-text);
+  letter-spacing: -0.01em;
+  margin-top: 24px;
+}
+.commit-root:not(#commit-scope) .commit-prose > :first-child {
+  margin-top: 0;
+}
+.commit-root:not(#commit-scope) .commit-prose h1 {
+  font-size: 20px;
+  line-height: 28px;
+  font-weight: 600;
+}
+.commit-root:not(#commit-scope) .commit-prose h2 {
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 600;
+}
+.commit-root:not(#commit-scope) .commit-prose h3, .commit-root:not(#commit-scope) .commit-prose h4, .commit-root:not(#commit-scope) .commit-prose h5, .commit-root:not(#commit-scope) .commit-prose h6 {
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+}
+.commit-root:not(#commit-scope) .commit-prose h4, .commit-root:not(#commit-scope) .commit-prose h5, .commit-root:not(#commit-scope) .commit-prose h6 {
+  color: var(--color-text-muted);
+}
+.commit-root:not(#commit-scope) .commit-prose a {
+  color: var(--color-green);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.commit-root:not(#commit-scope) .commit-prose strong {
+  font-weight: 600;
+}
+.commit-root:not(#commit-scope) .commit-prose ul, .commit-root:not(#commit-scope) .commit-prose ol {
+  padding-left: 22px;
+}
+.commit-root:not(#commit-scope) .commit-prose ul {
+  list-style: disc;
+}
+.commit-root:not(#commit-scope) .commit-prose ol {
+  list-style: decimal;
+}
+.commit-root:not(#commit-scope) .commit-prose li + li {
+  margin-top: 4px;
+}
+.commit-root:not(#commit-scope) .commit-prose li::marker {
+  color: var(--color-text-muted);
+}
+.commit-root:not(#commit-scope) .commit-prose li > ul, .commit-root:not(#commit-scope) .commit-prose li > ol {
+  margin-top: 4px;
+}
+.commit-root:not(#commit-scope) .commit-prose li:has(> input[type='checkbox']) {
+  list-style: none;
+  margin-left: -22px;
+}
+.commit-root:not(#commit-scope) .commit-prose input[type='checkbox'] {
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  margin: 0 8px 0 0;
+  vertical-align: -2px;
+  border: 1px solid var(--color-border);
+  border-radius: 3px;
+  background: var(--color-surface-2);
+}
+.commit-root:not(#commit-scope) .commit-prose input[type='checkbox']:checked {
+  background: var(--color-green) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M4 8.5l2.5 2.5L12 5.5' fill='none' stroke='%23101113' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 12px no-repeat;
+  border-color: var(--color-green);
+}
+.commit-root:not(#commit-scope) .commit-prose code {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 4px;
+  padding: 1px 4px;
+}
+.commit-root:not(#commit-scope) .commit-prose pre {
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 6px;
+  padding: 12px;
+  overflow-x: auto;
+  line-height: 20px;
+}
+.commit-root:not(#commit-scope) .commit-prose pre code {
+  background: none;
+  border: 0;
+  padding: 0;
+}
+.commit-root:not(#commit-scope) .commit-prose blockquote {
+  border-left: 2px solid var(--color-border);
+  padding-left: 12px;
+  color: var(--color-text-muted);
+}
+.commit-root:not(#commit-scope) .commit-prose hr {
+  border: 0;
+  border-top: 1px solid var(--color-border-subtle);
+  margin: 20px 0;
+}
+.commit-root:not(#commit-scope) .commit-prose img {
+  max-width: 100%;
+  border-radius: 6px;
+}
+.commit-root:not(#commit-scope) .commit-prose table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  display: block;
+  overflow-x: auto;
+}
+.commit-root:not(#commit-scope) .commit-prose th, .commit-root:not(#commit-scope) .commit-prose td {
+  border: 1px solid var(--color-border-subtle);
+  padding: 6px 10px;
+  text-align: left;
+}
+.commit-root:not(#commit-scope) .commit-prose th {
+  font-weight: 500;
+  background: var(--color-surface-2);
+}
 .commit-root:not(#commit-scope) {
     color-scheme: dark;
     --cell-min: 13px;
@@ -1586,6 +1952,31 @@
   initial-value: 0;
 }
 @property --tw-translate-z {
+  syntax: "*";
+  inherits: false;
+  initial-value: 0;
+}
+@property --tw-rotate-x {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-rotate-y {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-rotate-z {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-skew-x {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-skew-y {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-divide-y-reverse {
   syntax: "*";
   inherits: false;
   initial-value: 0;
@@ -1809,6 +2200,12 @@
       --tw-translate-x: 0;
       --tw-translate-y: 0;
       --tw-translate-z: 0;
+      --tw-rotate-x: initial;
+      --tw-rotate-y: initial;
+      --tw-rotate-z: initial;
+      --tw-skew-x: initial;
+      --tw-skew-y: initial;
+      --tw-divide-y-reverse: 0;
       --tw-border-style: solid;
       --tw-leading: initial;
       --tw-font-weight: initial;

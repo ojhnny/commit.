@@ -1,0 +1,49 @@
+/* Written verbatim (not processed by Tailwind). SCOPE is replaced by the build. */
+
+/* The view pane: the app sizes itself to the pane, not the window. */
+SCOPE.commit-view {
+  padding: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  position: relative;
+}
+SCOPE .commit-app {
+  container: commit / inline-size;
+  min-height: 100%;
+  outline: none;
+}
+SCOPE.commit-view:focus { outline: none; }
+
+/* Larger heatmap cells only on wide panes with a mouse (DESIGN.md §6). */
+@media (pointer: fine) {
+  @container commit (min-width: 768px) {
+    SCOPE .commit-app > * { --cell-min: 11px; }
+  }
+}
+
+/* Full-window layer for dialogs, sheets, menus, tooltips and toasts. */
+SCOPE.commit-portal {
+  position: fixed;
+  inset: 0;
+  z-index: 45;
+  pointer-events: none;
+  container: commit / inline-size;
+  background: transparent;
+}
+SCOPE.commit-portal > * { pointer-events: auto; }
+SCOPE.commit-portal:empty { display: none; }
+
+/* Undo host button/input chrome that Tailwind's preflight doesn't reset.
+   :where() keeps this below every utility class in specificity. */
+SCOPE :where(button, input, textarea, select) {
+  box-shadow: none;
+  height: auto;
+  min-height: 0;
+  margin: 0;
+  font-size: inherit;
+  line-height: inherit;
+  letter-spacing: inherit;
+  text-transform: none;
+}
+SCOPE :where(a) { text-decoration: none; color: inherit; }
+SCOPE :where(h1, h2, h3, p, ul) { margin: 0; padding: 0; font-size: inherit; color: inherit; }
