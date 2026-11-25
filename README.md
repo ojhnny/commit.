@@ -1,3 +1,4 @@
+<sub>A personal project, built mainly for my own daily use. Feel free to use it too.</sub><br>
 <sub>Looking for the full-stack web app (React + FastAPI + Postgres) instead? It's on the <a href="https://github.com/ojhnny/commit./tree/fullstack"><code>fullstack</code> branch</a>.</sub>
 
 # commit. for Obsidian
