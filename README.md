@@ -7,13 +7,16 @@
 A habit tracker for Obsidian where every habit gets its own GitHub-style contribution graph. Log progress in a couple of clicks, then watch your streaks and consistency build up, all inside your vault.
 
 <p align="center">
-  <img src="docs/screenshots/demo.gif" alt="Demo: logging progress, switching to list view, and exploring a habit's yearly heatmap" width="800">
+  <img src="docs/screenshots/demo.gif" alt="Demo: reordering habits by dragging, logging progress, timing a session, exploring the yearly heatmap, opening a note, and switching to list view" width="800">
 </p>
 
 - **A contribution graph per habit.** Year, month and calendar views, colored by how each day went.
 - **Flexible goals.** Yes/no, or an amount per day (minutes, hours, pages, problems, workouts, or your own unit).
 - **Custom schedules.** Every day, weekdays, weekends or specific days. Rest days never count against you.
 - **Streaks and consistency.** Current streak, longest streak, completed days and consistency %.
+- **Time spent and a timer.** Hours today, this week, this month and in total, plus a start/pause/stop timer that adds the time to today.
+- **Notes per habit.** Markdown notes for each habit, saved as normal `.md` files in your vault.
+- **Colors, order and archive.** Color-code habits, drag them into any order, and keep finished ones in the archive.
 - **Your data stays in your vault.** One JSON file that syncs wherever your vault syncs. No account, no server, no network requests.
 - **Desktop and mobile.** Works on macOS, Windows, Linux, iPhone, iPad and Android.
 
@@ -21,13 +24,21 @@ A habit tracker for Obsidian where every habit gets its own GitHub-style contrib
 
 *The plugin uses the same interface as the commit. web app. These screenshots use the built-in sample data.*
 
-**Dashboard.** Every habit at a glance: the last 7 days, current streak, consistency and today's progress.
+**Dashboard.** Every habit at a glance: the last 7 days, current streak, consistency and today's progress. Drag a habit by its grip to reorder.
 
 ![Dashboard in grid view](docs/screenshots/dashboard.png)
 
 **Yearly heatmap.** One square per day, colored by how that day went. Hover over or tap any day for the details.
 
 ![Yearly heatmap with a tooltip](docs/screenshots/heatmap.png)
+
+**Timer and time spent.** Start a timer on any minutes or hours habit. When you stop it, the time goes straight onto today.
+
+![Habit page with a running timer and time totals](docs/screenshots/timer.png)
+
+**Notes.** Each habit has its own markdown notes, like documents in a folder.
+
+![A habit's notes](docs/screenshots/notes.png)
 
 **List view.** Collapsible rows with the full graph and a quick logger for each habit.
 
