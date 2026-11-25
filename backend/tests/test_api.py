@@ -177,7 +177,7 @@ def test_export_import_round_trip(client: TestClient, auth):
 
     other = signup(client, "other@example.com")
     r = client.post(f"{API}/import", headers=other, json=backup)
-    assert r.json() == {"habits": 1, "logs": 1}
+    assert r.json() == {"habits": 1, "logs": 1, "notes": 0}
     snap = client.get(f"{API}/snapshot", headers=other).json()
     assert snap["habits"][0]["id"] != h["id"] and snap["logs"][0]["note"] == "done"
     assert snap["logs"][0]["habitId"] == snap["habits"][0]["id"]
@@ -219,11 +219,11 @@ def test_sample_data_and_reset(client: TestClient, auth):
         ],
         "logs": [{"habitId": "sample-x", "date": today().isoformat(), "value": 1}],
     }
-    assert client.post(f"{API}/import", headers=auth, json=backup).json() == {"habits": 1, "logs": 1}
+    assert client.post(f"{API}/import", headers=auth, json=backup).json() == {"habits": 1, "logs": 1, "notes": 0}
     assert client.delete(f"{API}/sample-data", headers=auth).status_code == 204
     assert [h["name"] for h in client.get(f"{API}/habits", headers=auth).json()] == ["Mine"]
     assert client.delete(f"{API}/data", headers=auth).status_code == 204
-    assert client.get(f"{API}/snapshot", headers=auth).json() == {"habits": [], "logs": []}
+    assert client.get(f"{API}/snapshot", headers=auth).json() == {"habits": [], "logs": [], "notes": []}
 
 
 def test_health(client: TestClient):

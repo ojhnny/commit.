@@ -1,5 +1,5 @@
 import { toDateKey } from '@/domain/dates'
-import type { DateKey, GoalVersion, Habit, HabitLog } from '@/domain/types'
+import type { DateKey, GoalVersion, Habit, HabitLog, HabitNote } from '@/domain/types'
 import type { ApiClient } from './apiClient'
 import { buildSampleData } from './demoData'
 import {
@@ -8,13 +8,14 @@ import {
   type HabitRepository,
   type LogInput,
   type NewHabitInput,
+  type NoteInput,
   RepositoryError,
   type Snapshot,
 } from './habitRepository'
 
 // The API sends null for empty optional fields; the app's types use undefined.
 type WireGoal = Omit<GoalVersion, 'customUnit'> & { customUnit?: string | null }
-type WireHabit = Omit<Habit, 'description' | 'goalVersions'> & { description?: string | null; goalVersions: WireGoal[] }
+type WireHabit = Omit<Habit, 'description' | 'goalVersions' | 'color'> & { description?: string | null; color?: Habit['color'] | null; goalVersions: WireGoal[] }
 type WireLog = Omit<HabitLog, 'note'> & { note?: string | null }
 
 function goalFromWire(g: WireGoal): GoalVersion {
@@ -22,7 +23,7 @@ function goalFromWire(g: WireGoal): GoalVersion {
 }
 
 function habitFromWire(h: WireHabit): Habit {
-  return { ...h, description: h.description ?? undefined, goalVersions: h.goalVersions.map(goalFromWire) }
+  return { ...h, description: h.description ?? undefined, color: h.color ?? undefined, goalVersions: h.goalVersions.map(goalFromWire) }
 }
 
 function logFromWire(l: WireLog): HabitLog {
@@ -45,8 +46,8 @@ export class HttpHabitRepository implements HabitRepository {
   }
 
   async load(): Promise<Snapshot> {
-    const s = await this.api.request<{ habits: WireHabit[]; logs: WireLog[] }>('GET', '/snapshot')
-    return { habits: s.habits.map(habitFromWire), logs: s.logs.map(logFromWire) }
+    const s = await this.api.request<{ habits: WireHabit[]; logs: WireLog[]; notes?: HabitNote[] }>('GET', '/snapshot')
+    return { habits: s.habits.map(habitFromWire), logs: s.logs.map(logFromWire), notes: s.notes ?? [] }
   }
 
   async createHabit(input: NewHabitInput): Promise<Habit> {
@@ -81,9 +82,21 @@ export class HttpHabitRepository implements HabitRepository {
     await this.api.request('DELETE', `/habits/${enc(habitId)}/logs/${date}`)
   }
 
+  async createNote(habitId: string, input: NoteInput): Promise<HabitNote> {
+    return this.api.request<HabitNote>('POST', `/habits/${enc(habitId)}/notes`, input)
+  }
+
+  async updateNote(noteId: string, patch: Partial<NoteInput>): Promise<HabitNote> {
+    return this.api.request<HabitNote>('PATCH', `/notes/${enc(noteId)}`, patch)
+  }
+
+  async deleteNote(noteId: string): Promise<void> {
+    await this.api.request('DELETE', `/notes/${enc(noteId)}`)
+  }
+
   async exportData(): Promise<BackupFile> {
     const b = await this.api.request<Omit<BackupFile, 'habits' | 'logs'> & { habits: WireHabit[]; logs: WireLog[] }>('GET', '/export')
-    return { ...b, habits: b.habits.map(habitFromWire), logs: b.logs.map(logFromWire) }
+    return { ...b, habits: b.habits.map(habitFromWire), logs: b.logs.map(logFromWire), notes: b.notes ?? [] }
   }
 
   async importData(backup: unknown): Promise<void> {
@@ -91,11 +104,11 @@ export class HttpHabitRepository implements HabitRepository {
   }
 
   /** Adds the habits in a backup to the account (used to move browser-only data over). */
-  async mergeData(backup: unknown): Promise<{ habits: number; logs: number }> {
+  async mergeData(backup: unknown): Promise<{ habits: number; logs: number; notes?: number }> {
     return this.import(backup, 'merge')
   }
 
-  private async import(backup: unknown, mode: 'merge' | 'replace'): Promise<{ habits: number; logs: number }> {
+  private async import(backup: unknown, mode: 'merge' | 'replace'): Promise<{ habits: number; logs: number; notes?: number }> {
     if (!isBackup(backup)) throw new RepositoryError('invalid', "That file isn't a commit. backup.")
     try {
       return await this.api.request('POST', `/import?mode=${mode}`, backup)

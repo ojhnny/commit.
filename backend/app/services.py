@@ -10,8 +10,8 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from . import domain
-from .models import Habit, HabitGoalVersion, HabitLog, User
-from .schemas import GoalIn, GoalOut, HabitOut, LogOut, Schedule
+from .models import Habit, HabitGoalVersion, HabitLog, HabitNote, User
+from .schemas import GoalIn, GoalOut, HabitOut, LogOut, NoteOut, Schedule
 
 
 def money(v: float) -> Decimal:
@@ -96,6 +96,7 @@ def habit_out(h: Habit) -> HabitOut:
         updated_at=h.updated_at,
         archived_at=h.archived_at,
         is_sample=h.is_sample,
+        color=h.color,  # type: ignore[arg-type]
     )
 
 
@@ -114,3 +115,24 @@ def log_out(log: HabitLog) -> LogOut:
 def logs_by_date(db: Session, habit_id: str) -> dict[date, float]:
     rows = db.execute(select(HabitLog.date, HabitLog.actual_value).where(HabitLog.habit_id == habit_id)).all()
     return {d: float(v) for d, v in rows}
+
+
+def note_out(note: HabitNote) -> NoteOut:
+    return NoteOut(
+        id=note.id,
+        habit_id=note.habit_id,
+        title=note.title,
+        body=note.body,
+        created_at=note.created_at,
+        updated_at=note.updated_at,
+    )
+
+
+def get_owned_note(db: Session, user: User, note_id: str) -> HabitNote:
+    note = db.get(HabitNote, note_id)
+    if note is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Note not found.")
+    habit = db.get(Habit, note.habit_id)
+    if habit is None or habit.user_id != user.id:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Note not found.")
+    return note

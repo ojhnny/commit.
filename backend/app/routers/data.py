@@ -8,10 +8,10 @@ from sqlalchemy.orm import Session
 
 from .. import domain
 from ..db import get_db
-from ..models import Habit, HabitLog, User, new_id
+from ..models import Habit, HabitLog, HabitNote, User, new_id
 from ..schemas import Backup, BackupIn, ImportResult, Snapshot
 from ..security import current_user
-from ..services import habit_out, log_out, money, set_goal_versions
+from ..services import habit_out, log_out, money, note_out, set_goal_versions
 
 router = APIRouter(tags=["data"])
 
@@ -20,7 +20,10 @@ def _snapshot(db: Session, user: User) -> Snapshot:
     habits = list(db.scalars(select(Habit).where(Habit.user_id == user.id).order_by(Habit.sort_order, Habit.created_at)))
     ids = [h.id for h in habits]
     logs = db.scalars(select(HabitLog).where(HabitLog.habit_id.in_(ids)).order_by(HabitLog.date)) if ids else []
-    return Snapshot(habits=[habit_out(h) for h in habits], logs=[log_out(l) for l in logs])
+    notes = (
+        db.scalars(select(HabitNote).where(HabitNote.habit_id.in_(ids)).order_by(HabitNote.updated_at.desc())) if ids else []
+    )
+    return Snapshot(habits=[habit_out(h) for h in habits], logs=[log_out(l) for l in logs], notes=[note_out(n) for n in notes])
 
 
 @router.get("/snapshot", response_model=Snapshot)
@@ -32,7 +35,7 @@ def snapshot(user: User = Depends(current_user), db: Session = Depends(get_db)) 
 @router.get("/export", response_model=Backup)
 def export(user: User = Depends(current_user), db: Session = Depends(get_db)) -> Backup:
     snap = _snapshot(db, user)
-    return Backup(habits=snap.habits, logs=snap.logs, exported_at=datetime.now(UTC))
+    return Backup(habits=snap.habits, logs=snap.logs, notes=snap.notes, exported_at=datetime.now(UTC))
 
 
 @router.post("/import", response_model=ImportResult)
@@ -42,7 +45,7 @@ def import_backup(
     user: User = Depends(current_user),
     db: Session = Depends(get_db),
 ) -> ImportResult:
-    """Adds habits from a backup file (new ids are assigned). `replace` deletes existing data first."""
+    """Adds habits (with their logs and notes) from a backup file; new ids are assigned. `replace` deletes existing data first."""
     if mode == "replace":
         db.execute(delete(Habit).where(Habit.user_id == user.id))
     base_order = (db.scalar(select(func.max(Habit.sort_order)).where(Habit.user_id == user.id)) or -1) + 1
@@ -57,6 +60,7 @@ def import_backup(
             sort_order=base_order + i,
             archived_at=h.archived_at,
             is_sample=h.is_sample,
+            color=h.color,
         )
         goals = sorted(
             (
@@ -86,8 +90,21 @@ def import_backup(
         seen.add((habit.id, log.date))
         db.add(HabitLog(habit_id=habit.id, date=log.date, actual_value=money(log.value), notes=(log.note or "").strip() or None))
         count += 1
+
+    note_count = 0
+    for n in body.notes:
+        habit = id_map.get(n.habit_id)
+        if habit is None:
+            continue
+        note = HabitNote(habit_id=habit.id, title=n.title.strip(), body=n.body)
+        if n.created_at:
+            note.created_at = n.created_at
+        if n.updated_at:
+            note.updated_at = n.updated_at
+        db.add(note)
+        note_count += 1
     db.commit()
-    return ImportResult(habits=len(id_map), logs=count)
+    return ImportResult(habits=len(id_map), logs=count, notes=note_count)
 
 
 @router.delete("/sample-data", status_code=204)

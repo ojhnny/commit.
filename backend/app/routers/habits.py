@@ -49,6 +49,7 @@ def create_habit(body: HabitCreate, user: User = Depends(current_user), db: Sess
         description=(body.description or "").strip() or None,
         start_date=body.start_date,
         sort_order=next_order,
+        color=body.color,
     )
     set_goal_versions(habit, [goal_in_to_domain(body.goal, body.start_date)])
     db.add(habit)
@@ -69,6 +70,8 @@ def update_habit(habit_id: str, body: HabitPatch, user: User = Depends(current_u
         habit.name = body.name.strip() or habit.name
     if "description" in body.model_fields_set:
         habit.description = (body.description or "").strip() or None
+    if "color" in body.model_fields_set:
+        habit.color = body.color
     goals = rules_of(habit).goals
     if body.start_date is not None and body.start_date != habit.start_date:
         habit.start_date = body.start_date

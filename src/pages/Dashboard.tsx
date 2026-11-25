@@ -1,4 +1,6 @@
-import { Archive, ChevronDown, ChevronsDownUp, ChevronsUpDown, Database, Download, Upload, LayoutGrid, List, ListOrdered, LogOut, MoreHorizontal, Plus, RotateCcw, Trash2 } from 'lucide-react'
+import { SortableHabits } from '@/components/habits/SortableHabits'
+import { Link } from 'react-router-dom'
+import { Archive, ChevronRight, ChevronsDownUp, ChevronsUpDown, Database, Download, Upload, LayoutGrid, List, ListOrdered, LogOut, MoreHorizontal, Plus, RotateCcw, Trash2 } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import type { DateKey, Habit, HabitLog } from '@/domain/types'
@@ -15,6 +17,7 @@ import {
 import { HabitCard } from '@/components/habits/HabitCard'
 import { HabitRow } from '@/components/habits/HabitRow'
 import { TodaySummary } from '@/components/habits/TodaySummary'
+import { TimeSummary } from '@/components/habits/TimeSummary'
 import { HabitFormDialog } from '@/components/habits/HabitFormDialog'
 import { DaySheet } from '@/components/habits/DaySheet'
 import { Wordmark } from '@/components/layout/Wordmark'
@@ -73,7 +76,6 @@ export function Dashboard() {
   const [creating, setCreating] = useState(false)
   const [quickLog, setQuickLog] = useState<Habit | null>(null)
   const [reordering, setReordering] = useState(false)
-  const [showArchived, setShowArchived] = useState(false)
   const [confirmReset, setConfirmReset] = useState(false)
   const [view, setViewState] = useState<DashboardView>(readView)
   const [expanded, setExpanded] = useState<Set<string>>(() => new Set())
@@ -150,6 +152,7 @@ export function Dashboard() {
     ids.splice(index + delta, 0, id)
     void actions.reorderHabits([...ids, ...archived.map((h) => h.id)])
   }
+  const saveOrder = (ids: string[]) => void actions.reorderHabits([...ids, ...archived.map((h) => h.id)])
 
   return (
     <>
@@ -168,6 +171,17 @@ export function Dashboard() {
               </Button>
             ) : (
               <>
+                <Button asChild variant="ghost" className="px-2.5">
+                  <Link to="/archive" aria-label={`Archive (${archived.length})`}>
+                    <Archive />
+                    <span className="max-sm:sr-only">Archive</span>
+                    {archived.length > 0 && (
+                      <span aria-hidden className="tabular text-text-faint">
+                        {archived.length}
+                      </span>
+                    )}
+                  </Link>
+                </Button>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="icon" aria-label="Dashboard options">
@@ -238,7 +252,10 @@ export function Dashboard() {
             {reordering ? (
               <p className="text-small text-text-muted">Use the arrows to change the order.</p>
             ) : (
-              <TodaySummary habits={active} logsByHabit={logsByHabit} today={today} />
+              <div className="flex min-w-0 flex-1 flex-col gap-2">
+                <TodaySummary habits={active} logsByHabit={logsByHabit} today={today} />
+                <TimeSummary habits={habits} logsByHabit={logsByHabit} today={today} />
+              </div>
             )}
             <div className="flex shrink-0 items-center gap-1">
               {view === 'list' && !reordering && (
@@ -262,7 +279,7 @@ export function Dashboard() {
             title={archived.length ? 'No active habits' : 'Start your first habit'}
             body={
               archived.length
-                ? 'Your archived habits are below. Create a new one or restore an old one.'
+                ? 'Your archived habits are in the Archive. Create a new one or restore an old one.'
                 : 'Create a habit, log a little progress each day, and watch your graph fill in.'
             }
             action={
@@ -279,66 +296,67 @@ export function Dashboard() {
             }
           />
         ) : view === 'list' ? (
-          <ul className="flex flex-col gap-2" aria-label="Habits">
-            {active.map((habit, i) => (
-              <li key={habit.id}>
+          reordering ? (
+            <ul className="flex flex-col gap-2" aria-label="Habits">
+              {active.map((habit, i) => (
+                <li key={habit.id}>
+                  <HabitRow
+                    habit={habit}
+                    logs={logsByHabit.get(habit.id) ?? EMPTY}
+                    today={today}
+                    expanded={expanded.has(habit.id)}
+                    onToggle={() => toggleRow(habit.id)}
+                    reorder={{ onUp: i > 0 ? () => move(i, -1) : undefined, onDown: i < active.length - 1 ? () => move(i, 1) : undefined }}
+                  />
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <SortableHabits habits={active} layout="list" className="flex flex-col gap-2" onReorder={saveOrder}>
+              {(habit, handle) => (
                 <HabitRow
                   habit={habit}
                   logs={logsByHabit.get(habit.id) ?? EMPTY}
                   today={today}
                   expanded={expanded.has(habit.id)}
                   onToggle={() => toggleRow(habit.id)}
-                  reorder={
-                    reordering
-                      ? { onUp: i > 0 ? () => move(i, -1) : undefined, onDown: i < active.length - 1 ? () => move(i, 1) : undefined }
-                      : undefined
-                  }
+                  dragHandle={handle}
                 />
-              </li>
-            ))}
-          </ul>
+              )}
+            </SortableHabits>
+          )
         ) : (
-          <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3" aria-label="Habits">
-            {active.map((habit, i) => (
-              <li key={habit.id}>
-                <HabitCard
-                  habit={habit}
-                  logs={logsByHabit.get(habit.id) ?? EMPTY}
-                  today={today}
-                  onQuickLog={setQuickLog}
-                  reorder={
-                    reordering
-                      ? { onUp: i > 0 ? () => move(i, -1) : undefined, onDown: i < active.length - 1 ? () => move(i, 1) : undefined }
-                      : undefined
-                  }
-                />
-              </li>
-            ))}
-          </ul>
+          reordering ? (
+            <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3" aria-label="Habits">
+              {active.map((habit, i) => (
+                <li key={habit.id}>
+                  <HabitCard
+                    habit={habit}
+                    logs={logsByHabit.get(habit.id) ?? EMPTY}
+                    today={today}
+                    onQuickLog={setQuickLog}
+                    reorder={{ onUp: i > 0 ? () => move(i, -1) : undefined, onDown: i < active.length - 1 ? () => move(i, 1) : undefined }}
+                  />
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <SortableHabits habits={active} layout="grid" className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3" onReorder={saveOrder}>
+              {(habit, handle) => (
+                <HabitCard habit={habit} logs={logsByHabit.get(habit.id) ?? EMPTY} today={today} onQuickLog={setQuickLog} dragHandle={handle} />
+              )}
+            </SortableHabits>
+          )
         )}
 
         {archived.length > 0 && !reordering && (
-          <section className="mt-8">
-            <button
-              type="button"
-              aria-expanded={showArchived}
-              onClick={() => setShowArchived((v) => !v)}
-              className="flex h-9 items-center gap-1.5 rounded-md px-1 text-small text-text-muted hover:text-text touch:h-11"
-            >
+          <div className="mt-8">
+            <Link to="/archive" className="inline-flex h-9 items-center gap-1.5 rounded-md px-1 text-small text-text-muted hover:text-text touch:h-11">
               <Archive className="size-4" aria-hidden />
               Archived <span className="tabular">({archived.length})</span>
-              <ChevronDown aria-hidden className={cn('size-4 transition-transform', showArchived && 'rotate-180')} />
-            </button>
-            {showArchived && (
-              <ul className="mt-2 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                {archived.map((habit) => (
-                  <li key={habit.id}>
-                    <HabitCard habit={habit} logs={logsByHabit.get(habit.id) ?? EMPTY} today={today} onQuickLog={setQuickLog} />
-                  </li>
-                ))}
-              </ul>
-            )}
-          </section>
+              <ChevronRight aria-hidden className="size-4" />
+            </Link>
+          </div>
         )}
 
         <footer className="mt-12 text-center text-micro text-text-faint">

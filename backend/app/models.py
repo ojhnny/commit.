@@ -66,6 +66,7 @@ class Habit(Timestamped, Base):
     sort_order: Mapped[int] = mapped_column(Integer, default=0)
     archived_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     is_sample: Mapped[bool] = mapped_column(Boolean, default=False)
+    color: Mapped[str | None] = mapped_column(String(12))
 
     goal_versions: Mapped[list["HabitGoalVersion"]] = relationship(
         back_populates="habit",
@@ -109,3 +110,14 @@ class HabitLog(Timestamped, Base):
     date: Mapped[dt.date] = mapped_column(Date)
     actual_value: Mapped[Decimal] = mapped_column(Numeric(12, 2))
     notes: Mapped[str | None] = mapped_column(Text)
+
+
+class HabitNote(Timestamped, Base):
+    """A markdown note attached to a habit. Several per habit; title may be empty."""
+
+    __tablename__ = "habit_notes"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
+    habit_id: Mapped[str] = mapped_column(ForeignKey("habits.id", ondelete="CASCADE"), index=True)
+    title: Mapped[str] = mapped_column(String(120), default="")
+    body: Mapped[str] = mapped_column(Text, default="")

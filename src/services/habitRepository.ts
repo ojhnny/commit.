@@ -1,4 +1,4 @@
-import type { DateKey, GoalVersion, Habit, HabitLog } from '@/domain/types'
+import type { DateKey, GoalVersion, Habit, HabitColor, HabitLog, HabitNote } from '@/domain/types'
 
 /**
  * Persistence boundary. Components and state never talk to storage directly.
@@ -11,6 +11,7 @@ export interface NewHabitInput {
   description?: string
   startDate: DateKey
   goal: Omit<GoalVersion, 'effectiveDate'>
+  color?: HabitColor
 }
 
 export interface HabitPatch {
@@ -20,6 +21,8 @@ export interface HabitPatch {
   /** New goal applied from `goalEffectiveDate` (a new goal version). */
   goal?: Omit<GoalVersion, 'effectiveDate'>
   goalEffectiveDate?: DateKey
+  /** null removes the color. */
+  color?: HabitColor | null
 }
 
 export interface LogInput {
@@ -27,15 +30,25 @@ export interface LogInput {
   note?: string
 }
 
+export interface NoteInput {
+  title: string
+  body: string
+}
+
 export interface Snapshot {
   habits: Habit[]
   logs: HabitLog[]
+  notes: HabitNote[]
 }
 
-export interface BackupFile extends Snapshot {
+export interface BackupFile {
   app: 'commit'
   version: 1
   exportedAt: string
+  habits: Habit[]
+  logs: HabitLog[]
+  /** Added with habit notes. Older backups have no `notes` and still import. */
+  notes?: HabitNote[]
 }
 
 export interface HabitRepository {
@@ -53,6 +66,12 @@ export interface HabitRepository {
   /** Creates or replaces the single entry for (habitId, date). */
   upsertLog(habitId: string, date: DateKey, input: LogInput): Promise<HabitLog>
   deleteLog(habitId: string, date: DateKey): Promise<void>
+
+  /** Creates a note for a habit. */
+  createNote(habitId: string, input: NoteInput): Promise<HabitNote>
+  /** Changes a note's title and/or body. */
+  updateNote(noteId: string, patch: Partial<NoteInput>): Promise<HabitNote>
+  deleteNote(noteId: string): Promise<void>
 
   /** Full copy of everything, for backups. */
   exportData(): Promise<BackupFile>

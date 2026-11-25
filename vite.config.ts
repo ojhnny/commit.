@@ -5,8 +5,10 @@ import { fileURLToPath, URL } from 'node:url'
 import { defineConfig } from 'vite'
 
 export default defineConfig({
-  // Relative base so the static build also works when hosted under a sub-path.
-  base: './',
+  // The hash-routed static build uses a relative base so it works under any sub-path.
+  // The normal build needs an absolute base: with './', reloading a deep link such as
+  // /habits/:id/notes asks for /habits/:id/assets/… and gets a blank page.
+  base: process.env.VITE_ROUTER === 'hash' ? './' : '/',
   plugins: [react(), tailwindcss()],
   resolve: {
     alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },

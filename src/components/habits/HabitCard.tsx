@@ -1,5 +1,5 @@
 import { ArrowDown, ArrowUp, Check, ChevronRight, Plus } from 'lucide-react'
-import { memo, useMemo } from 'react'
+import { memo, useMemo, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { formatPercent } from '@/domain/consistency'
 import { recentDays, type LogIndex } from '@/domain/progress'
@@ -12,6 +12,8 @@ import { StatusDot } from '@/components/heatmap/StatusDot'
 import { WeekPreview } from '@/components/heatmap/WeekPreview'
 import { useStore } from '@/state/HabitStore'
 import { cn } from '@/lib/utils'
+import { ColorDot } from './ColorPicker'
+import { TimerChip } from './HabitTimer'
 
 interface HabitCardProps {
   habit: Habit
@@ -19,6 +21,8 @@ interface HabitCardProps {
   today: DateKey
   onQuickLog: (habit: Habit) => void
   reorder?: { onUp?: () => void; onDown?: () => void }
+  /** Drag grip shown in the top-right corner instead of the chevron. */
+  dragHandle?: ReactNode
 }
 
 function todayLabel(habit: Habit, status: string, value: number, today: DateKey): string {
@@ -34,7 +38,7 @@ function todayLabel(habit: Habit, status: string, value: number, today: DateKey)
  * Dashboard card. The whole card navigates to the habit (stretched link);
  * the quick-log control sits above the link layer so it stays independently clickable.
  */
-export const HabitCard = memo(function HabitCard({ habit, logs, today, onQuickLog, reorder }: HabitCardProps) {
+export const HabitCard = memo(function HabitCard({ habit, logs, today, onQuickLog, reorder, dragHandle }: HabitCardProps) {
   const { actions } = useStore()
   const goal = currentGoal(habit, today)
   const binary = isBinary(goal)
@@ -56,8 +60,9 @@ export const HabitCard = memo(function HabitCard({ habit, logs, today, onQuickLo
     >
       <div className="flex items-start gap-3">
         <div className="min-w-0 flex-1">
-          <h2 className="truncate text-[15px] leading-5 font-medium text-text">
-            <Link to={`/habits/${habit.id}`} className="outline-none after:absolute after:inset-0 after:rounded-lg after:content-['']">
+          <h2 className="flex items-center gap-2 text-[15px] leading-5 font-medium text-text">
+            <ColorDot color={habit.color} />
+            <Link to={`/habits/${habit.id}`} className="truncate outline-none after:absolute after:inset-0 after:rounded-lg after:content-['']">
               {habit.name}
             </Link>
           </h2>
@@ -74,6 +79,8 @@ export const HabitCard = memo(function HabitCard({ habit, logs, today, onQuickLo
               <ArrowDown />
             </Button>
           </div>
+        ) : dragHandle ? (
+          <div className="-mt-1.5 -mr-2">{dragHandle}</div>
         ) : (
           <ChevronRight aria-hidden className="mt-0.5 size-4 shrink-0 text-text-faint transition-transform duration-150 group-hover:translate-x-0.5 group-hover:text-text-muted" />
         )}
@@ -97,6 +104,7 @@ export const HabitCard = memo(function HabitCard({ habit, logs, today, onQuickLo
         <div className="flex min-w-0 items-center gap-2 text-small text-text-muted">
           <StatusDot status={t.status} />
           <span className="tabular truncate">{todayLabel(habit, t.status, t.value, today)}</span>
+          <TimerChip habitId={habit.id} />
         </div>
         {!archived && canLogToday && (
           <div className="relative z-10 shrink-0">

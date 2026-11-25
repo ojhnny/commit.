@@ -1,5 +1,6 @@
 @import 'tailwindcss';
 @import '@fontsource-variable/geist';
+@import './prose.css';
 
 /* Mirrors src/design/tokens.ts — keep in sync (enforced by tokens.test.ts). */
 @theme {
@@ -20,6 +21,7 @@
   --color-orange: #DA8B36;
   --color-danger: #E5534B;
   --color-danger-strong: #C0392F;
+  --color-timer: #E8713F;
 
   --color-heat-empty: #25282D;
   --color-heat-missed: #DA8B36;

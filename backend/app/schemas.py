@@ -10,6 +10,7 @@ from pydantic.alias_generators import to_camel
 
 UnitId = Literal["minutes", "hours", "problems", "pages", "workouts", "sessions", "tasks", "completion", "custom"]
 SchedulePreset = Literal["daily", "weekdays", "weekends", "custom"]
+HabitColor = Literal["red", "orange", "yellow", "green", "teal", "blue", "purple", "pink"]
 
 
 class ApiModel(BaseModel):
@@ -74,6 +75,7 @@ class HabitCreate(ApiModel):
     description: str | None = Field(default=None, max_length=280)
     start_date: date
     goal: GoalIn
+    color: HabitColor | None = None
 
     @field_validator("name")
     @classmethod
@@ -90,6 +92,7 @@ class HabitPatch(ApiModel):
     start_date: date | None = None
     goal: GoalIn | None = None
     goal_effective_date: date | None = None
+    color: HabitColor | None = None
 
 
 class HabitOut(ApiModel):
@@ -103,6 +106,7 @@ class HabitOut(ApiModel):
     updated_at: datetime
     archived_at: datetime | None
     is_sample: bool = False
+    color: HabitColor | None = None
 
 
 class ReorderIn(ApiModel):
@@ -140,12 +144,38 @@ class StatsOut(ApiModel):
     today_value: float
 
 
+# ---------------------------------------------------------------- notes
+
+NOTE_TITLE_MAX = 120
+NOTE_BODY_MAX = 100_000
+
+
+class NoteIn(ApiModel):
+    title: str = Field(default="", max_length=NOTE_TITLE_MAX)
+    body: str = Field(default="", max_length=NOTE_BODY_MAX)
+
+
+class NotePatch(ApiModel):
+    title: str | None = Field(default=None, max_length=NOTE_TITLE_MAX)
+    body: str | None = Field(default=None, max_length=NOTE_BODY_MAX)
+
+
+class NoteOut(ApiModel):
+    id: str
+    habit_id: str
+    title: str
+    body: str
+    created_at: datetime
+    updated_at: datetime
+
+
 # ---------------------------------------------------------------- data
 
 
 class Snapshot(ApiModel):
     habits: list[HabitOut]
     logs: list[LogOut]
+    notes: list[NoteOut] = []
 
 
 class Backup(Snapshot):
@@ -165,6 +195,7 @@ class BackupHabitIn(ApiModel):
     order: int = 0
     archived_at: datetime | None = None
     is_sample: bool = False
+    color: HabitColor | None = None
 
 
 class BackupLogIn(ApiModel):
@@ -174,13 +205,24 @@ class BackupLogIn(ApiModel):
     note: str | None = Field(default=None, max_length=500)
 
 
+class BackupNoteIn(ApiModel):
+    habit_id: str
+    title: str = Field(default="", max_length=NOTE_TITLE_MAX)
+    body: str = Field(default="", max_length=NOTE_BODY_MAX)
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
+
+
 class BackupIn(ApiModel):
     app: Literal["commit"]
     version: Literal[1]
     habits: list[BackupHabitIn] = Field(max_length=500)
     logs: list[BackupLogIn] = Field(max_length=200_000)
+    # Backups made before notes existed have none.
+    notes: list[BackupNoteIn] = Field(default=[], max_length=10_000)
 
 
 class ImportResult(ApiModel):
     habits: int
     logs: int
+    notes: int = 0

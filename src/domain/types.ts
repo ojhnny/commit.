@@ -20,6 +20,9 @@ export interface Schedule {
   days: Weekday[]
 }
 
+/** Label color a habit can carry (DESIGN.md §4 Habit colors). Stored by name, never as a hex value. */
+export type HabitColor = 'red' | 'orange' | 'yellow' | 'green' | 'teal' | 'blue' | 'purple' | 'pink'
+
 export type UnitId =
   | 'minutes'
   | 'hours'
@@ -58,6 +61,10 @@ export interface Habit {
   archivedAt: string | null
   /** Marks prototype sample data so it can be removed in one action. */
   isSample?: boolean
+  /** Optional label color, shown as a dot by the name. */
+  color?: HabitColor
+  /** Obsidian plugin only: vault folder that holds this habit's note files. */
+  notesFolder?: string
 }
 
 export interface HabitLog {
@@ -67,6 +74,18 @@ export interface HabitLog {
   /** Recorded amount in the unit of the goal version that applies on `date`. */
   value: number
   note?: string
+  createdAt: string
+  updatedAt: string
+}
+
+/** A markdown note attached to a habit (several per habit, like documents in a folder). */
+export interface HabitNote {
+  id: string
+  habitId: string
+  /** May be empty; shown as "Untitled". */
+  title: string
+  /** Markdown source. */
+  body: string
   createdAt: string
   updatedAt: string
 }

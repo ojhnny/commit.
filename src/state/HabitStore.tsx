@@ -1,8 +1,9 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { toast } from 'sonner'
 import { indexLogs } from '@/domain/progress'
-import type { DateKey, Habit, HabitLog } from '@/domain/types'
-import type { BackupFile, HabitPatch, HabitRepository, LogInput, NewHabitInput } from '@/services/habitRepository'
+import { sortNotes } from '@/domain/notes'
+import type { DateKey, Habit, HabitLog, HabitNote } from '@/domain/types'
+import type { BackupFile, HabitPatch, HabitRepository, LogInput, NewHabitInput, NoteInput } from '@/services/habitRepository'
 import { useToday } from '@/hooks/useToday'
 
 type Status = 'loading' | 'ready' | 'error'
@@ -15,6 +16,8 @@ interface StoreValue {
   habits: Habit[]
   /** habitId → (date → log). Each habit's history is kept separately. */
   logsByHabit: ReadonlyMap<string, ReadonlyMap<DateKey, HabitLog>>
+  /** habitId → notes, newest edit first. */
+  notesByHabit: ReadonlyMap<string, readonly HabitNote[]>
   actions: {
     createHabit(input: NewHabitInput): Promise<Habit | null>
     updateHabit(id: string, patch: HabitPatch): Promise<Habit | null>
@@ -27,6 +30,15 @@ interface StoreValue {
     /** Saves and shows a toast with an Undo action that restores the previous entry. */
     logWithUndo(habitId: string, date: DateKey, input: LogInput, message: string): Promise<boolean>
     clearWithUndo(habitId: string, date: DateKey, message: string): Promise<void>
+    /** Note changes update local state from the result instead of reloading everything (autosave runs often). */
+    createNote(habitId: string, input: NoteInput): Promise<HabitNote | null>
+    /** Throws on failure so the editor can show "Couldn't save". */
+    updateNote(noteId: string, patch: Partial<NoteInput>): Promise<HabitNote>
+    deleteNote(noteId: string): Promise<boolean>
+    /** Deletes and shows a toast with Undo, which recreates the note. */
+    deleteNoteWithUndo(note: HabitNote, message: string): Promise<boolean>
+    /** Follows note id changes (in Obsidian a note's id is its file path, which changes with the title). */
+    resolveNoteId(id: string): string
     exportData(): Promise<BackupFile | null>
     importData(backup: unknown): Promise<boolean>
     removeSampleData(): Promise<void>
@@ -38,6 +50,17 @@ interface StoreValue {
 
 const StoreContext = createContext<StoreValue | null>(null)
 const EMPTY_LOGS: ReadonlyMap<DateKey, HabitLog> = new Map()
+const EMPTY_NOTES: readonly HabitNote[] = []
+
+function groupNotes(notes: readonly HabitNote[]): Map<string, HabitNote[]> {
+  const byHabit = new Map<string, HabitNote[]>()
+  for (const note of sortNotes(notes)) {
+    const list = byHabit.get(note.habitId)
+    if (list) list.push(note)
+    else byHabit.set(note.habitId, [note])
+  }
+  return byHabit
+}
 
 function groupLogs(logs: HabitLog[]): Map<string, Map<DateKey, HabitLog>> {
   const byHabit = new Map<string, HabitLog[]>()
@@ -55,7 +78,9 @@ export function HabitStoreProvider({ repository, children }: { repository: Habit
   const [error, setError] = useState<string | null>(null)
   const [habits, setHabits] = useState<Habit[]>([])
   const [logsByHabit, setLogsByHabit] = useState<Map<string, Map<DateKey, HabitLog>>>(new Map())
+  const [notes, setNotes] = useState<HabitNote[]>([])
 
+  const noteAliases = useRef(new Map<string, string>())
   const logsRef = useRef(logsByHabit)
   logsRef.current = logsByHabit
 
@@ -64,6 +89,7 @@ export function HabitStoreProvider({ repository, children }: { repository: Habit
       const snap = await repository.load()
       setHabits([...snap.habits].sort((a, b) => a.order - b.order))
       setLogsByHabit(groupLogs(snap.logs))
+      setNotes(snap.notes ?? [])
       setStatus('ready')
       setError(null)
     } catch (e) {
@@ -139,6 +165,58 @@ export function HabitStoreProvider({ repository, children }: { repository: Habit
         await run(() => repository.deleteLog(habitId, date))
         toast(message, { action: { label: 'Undo', onClick: () => void restore(habitId, date, prev) } })
       },
+      createNote: async (habitId, input) => {
+        try {
+          const note = await repository.createNote(habitId, input)
+          setNotes((list) => [...list.filter((n) => n.id !== note.id), note])
+          return note
+        } catch (e) {
+          toast.error(e instanceof Error ? e.message : 'Something went wrong.')
+          return null
+        }
+      },
+      updateNote: async (noteId, patch) => {
+        const note = await repository.updateNote(noteId, patch)
+        if (note.id !== noteId) noteAliases.current.set(noteId, note.id)
+        // The id can change (in Obsidian it is the file path, which follows the title).
+        setNotes((list) => [...list.filter((n) => n.id !== noteId && n.id !== note.id), note])
+        return note
+      },
+      deleteNote: async (noteId) => {
+        try {
+          await repository.deleteNote(noteId)
+          setNotes((list) => list.filter((n) => n.id !== noteId))
+          return true
+        } catch (e) {
+          toast.error(e instanceof Error ? e.message : 'Something went wrong.')
+          return false
+        }
+      },
+      deleteNoteWithUndo: async (note, message) => {
+        try {
+          await repository.deleteNote(note.id)
+        } catch (e) {
+          toast.error(e instanceof Error ? e.message : 'Something went wrong.')
+          return false
+        }
+        setNotes((list) => list.filter((n) => n.id !== note.id))
+        toast(message, {
+          action: {
+            label: 'Undo',
+            onClick: () =>
+              void repository
+                .createNote(note.habitId, { title: note.title, body: note.body })
+                .then((restored) => setNotes((list) => [...list, restored]))
+                .catch((e: unknown) => toast.error(e instanceof Error ? e.message : 'Something went wrong.')),
+          },
+        })
+        return true
+      },
+      resolveNoteId: (id) => {
+        let current = id
+        for (let i = 0; i < 20 && noteAliases.current.has(current); i++) current = noteAliases.current.get(current)!
+        return current
+      },
       exportData: () => run(() => repository.exportData()),
       importData: async (backup) => (await run(() => repository.importData(backup).then(() => true))) ?? false,
       removeSampleData: async () => void (await run(() => repository.removeSampleData())),
@@ -148,9 +226,11 @@ export function HabitStoreProvider({ repository, children }: { repository: Habit
     }
   }, [repository, run, reload])
 
+  const notesByHabit = useMemo(() => groupNotes(notes), [notes])
+
   const value = useMemo<StoreValue>(
-    () => ({ status, error, today, habits, logsByHabit, actions }),
-    [status, error, today, habits, logsByHabit, actions],
+    () => ({ status, error, today, habits, logsByHabit, notesByHabit, actions }),
+    [status, error, today, habits, logsByHabit, notesByHabit, actions],
   )
 
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>
@@ -165,4 +245,9 @@ export function useStore(): StoreValue {
 export function useHabitLogs(habitId: string | undefined): ReadonlyMap<DateKey, HabitLog> {
   const { logsByHabit } = useStore()
   return (habitId && logsByHabit.get(habitId)) || EMPTY_LOGS
+}
+
+export function useHabitNotes(habitId: string | undefined): readonly HabitNote[] {
+  const { notesByHabit } = useStore()
+  return (habitId && notesByHabit.get(habitId)) || EMPTY_NOTES
 }

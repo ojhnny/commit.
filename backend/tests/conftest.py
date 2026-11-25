@@ -21,7 +21,7 @@ def schema():
 @pytest.fixture(autouse=True)
 def clean():
     with engine.begin() as conn:
-        conn.execute(text("TRUNCATE users, sessions, habits, habit_goal_versions, habit_logs CASCADE"))
+        conn.execute(text("TRUNCATE users, sessions, habits, habit_goal_versions, habit_logs, habit_notes CASCADE"))
     yield
 
 

@@ -230,7 +230,7 @@ export function ProgressLogger({ habit, date, log, onSaved, hideHeader, autoFocu
           <>
             <Button type="submit" variant="primary" className={cn(!wide && 'sm:flex-1')} disabled={saving || (!raw.trim() && !noteDirty)}>
               <Plus className={cn(mode === 'set' && 'hidden')} />
-              {mode === 'add' ? 'Add progress' : 'Save total'}
+              {mode === 'add' ? 'Add progress' : 'Save'}
             </Button>
             {!complete && (
               <Button

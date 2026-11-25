@@ -1,5 +1,6 @@
+import { Archive } from '@/pages/Archive'
 import { useEffect, type ReactNode } from 'react'
-import { BrowserRouter, HashRouter, Route, Routes, useLocation } from 'react-router-dom'
+import { BrowserRouter, HashRouter, Route, Routes, useLocation, useNavigationType } from 'react-router-dom'
 import { Toaster } from 'sonner'
 import { Dashboard } from '@/pages/Dashboard'
 import { HabitDetails } from '@/pages/HabitDetails'
@@ -13,9 +14,11 @@ const Router = ({ children }: { children: ReactNode }) =>
 
 function ScrollToTop() {
   const { pathname } = useLocation()
+  const type = useNavigationType()
+  // Replacements (redirects inside the notes view) keep the scroll position.
   useEffect(() => {
-    window.scrollTo(0, 0)
-  }, [pathname])
+    if (type !== 'REPLACE') window.scrollTo(0, 0)
+  }, [pathname, type])
   return null
 }
 
@@ -27,6 +30,9 @@ export function App({ repository }: { repository: HabitRepository }) {
         <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route path="/habits/:habitId" element={<HabitDetails />} />
+          <Route path="/habits/:habitId/notes" element={<HabitDetails />} />
+          <Route path="/habits/:habitId/notes/:noteId" element={<HabitDetails />} />
+          <Route path="/archive" element={<Archive />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Router>

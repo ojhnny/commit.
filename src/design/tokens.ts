@@ -23,6 +23,7 @@ export const colors = {
   orange: '#DA8B36',
   danger: '#E5534B',
   dangerStrong: '#C0392F',
+  timer: '#E8713F',
 } as const
 
 export const heat = {

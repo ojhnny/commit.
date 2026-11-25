@@ -1,0 +1,68 @@
+/* Rendered markdown in notes (DESIGN.md §8 Habit notes). Type stays on the app's scale. */
+.commit-prose {
+  font-size: 14px;
+  line-height: 22px;
+  color: var(--color-text);
+  overflow-wrap: anywhere;
+}
+.commit-prose > * + * { margin-top: 12px; }
+.commit-prose h1, .commit-prose h2, .commit-prose h3, .commit-prose h4, .commit-prose h5, .commit-prose h6 {
+  color: var(--color-text);
+  letter-spacing: -0.01em;
+  margin-top: 24px;
+}
+.commit-prose > :first-child { margin-top: 0; }
+.commit-prose h1 { font-size: 20px; line-height: 28px; font-weight: 600; }
+.commit-prose h2 { font-size: 16px; line-height: 24px; font-weight: 600; }
+.commit-prose h3, .commit-prose h4, .commit-prose h5, .commit-prose h6 { font-size: 14px; line-height: 20px; font-weight: 500; }
+.commit-prose h4, .commit-prose h5, .commit-prose h6 { color: var(--color-text-muted); }
+.commit-prose a { color: var(--color-green); text-decoration: underline; text-underline-offset: 2px; }
+.commit-prose strong { font-weight: 600; }
+.commit-prose ul, .commit-prose ol { padding-left: 22px; }
+.commit-prose ul { list-style: disc; }
+.commit-prose ol { list-style: decimal; }
+.commit-prose li + li { margin-top: 4px; }
+.commit-prose li::marker { color: var(--color-text-muted); }
+.commit-prose li > ul, .commit-prose li > ol { margin-top: 4px; }
+.commit-prose li:has(> input[type='checkbox']) { list-style: none; margin-left: -22px; }
+.commit-prose input[type='checkbox'] {
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  margin: 0 8px 0 0;
+  vertical-align: -2px;
+  border: 1px solid var(--color-border);
+  border-radius: 3px;
+  background: var(--color-surface-2);
+}
+.commit-prose input[type='checkbox']:checked {
+  background: var(--color-green) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M4 8.5l2.5 2.5L12 5.5' fill='none' stroke='%23101113' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 12px no-repeat;
+  border-color: var(--color-green);
+}
+.commit-prose code {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 4px;
+  padding: 1px 4px;
+}
+.commit-prose pre {
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 6px;
+  padding: 12px;
+  overflow-x: auto;
+  line-height: 20px;
+}
+.commit-prose pre code { background: none; border: 0; padding: 0; }
+.commit-prose blockquote {
+  border-left: 2px solid var(--color-border);
+  padding-left: 12px;
+  color: var(--color-text-muted);
+}
+.commit-prose hr { border: 0; border-top: 1px solid var(--color-border-subtle); margin: 20px 0; }
+.commit-prose img { max-width: 100%; border-radius: 6px; }
+.commit-prose table { width: 100%; border-collapse: collapse; font-size: 13px; display: block; overflow-x: auto; }
+.commit-prose th, .commit-prose td { border: 1px solid var(--color-border-subtle); padding: 6px 10px; text-align: left; }
+.commit-prose th { font-weight: 500; background: var(--color-surface-2); }

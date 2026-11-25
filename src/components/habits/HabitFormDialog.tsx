@@ -4,7 +4,8 @@ import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { WEEKDAY_INITIAL, WEEKDAY_LONG } from '@/domain/dates'
 import { currentGoal, makeSchedule, normalizeSchedule } from '@/domain/scheduling'
-import type { GoalVersion, Habit, SchedulePreset, UnitId, Weekday } from '@/domain/types'
+import type { GoalVersion, Habit, HabitColor, SchedulePreset, UnitId, Weekday } from '@/domain/types'
+import { ColorPicker } from './ColorPicker'
 import { UNIT_OPTIONS, UNITS } from '@/domain/units'
 import { LIMITS, parseAmount, validateHabitForm, type HabitFormErrors, type HabitFormInput, type HabitKind } from '@/domain/validation'
 import { Button } from '@/components/ui/button'
@@ -67,6 +68,7 @@ export function HabitFormDialog({ open, onOpenChange, habit }: HabitFormDialogPr
   const editing = Boolean(habit)
   const [input, setInput] = useState<HabitFormInput>(() => initialInput(habit, today))
   const [errors, setErrors] = useState<HabitFormErrors>({})
+  const [color, setColor] = useState<HabitColor | undefined>(habit?.color)
   const [submitting, setSubmitting] = useState(false)
   const id = useId()
   const f = (name: string) => `${id}-${name}`
@@ -74,6 +76,7 @@ export function HabitFormDialog({ open, onOpenChange, habit }: HabitFormDialogPr
   useEffect(() => {
     if (open) {
       setInput(initialInput(habit, today))
+      setColor(habit?.color)
       setErrors({})
     }
   }, [open, habit, today])
@@ -120,6 +123,7 @@ export function HabitFormDialog({ open, onOpenChange, habit }: HabitFormDialogPr
         description: input.description,
         startDate: input.startDate,
         goal: toGoal(input),
+        color: color ?? null,
       })
       setSubmitting(false)
       if (updated) {
@@ -132,6 +136,7 @@ export function HabitFormDialog({ open, onOpenChange, habit }: HabitFormDialogPr
         description: input.description,
         startDate: input.startDate,
         goal: toGoal(input),
+        color,
       })
       setSubmitting(false)
       if (created) {
@@ -180,6 +185,13 @@ export function HabitFormDialog({ open, onOpenChange, habit }: HabitFormDialogPr
             value={input.description}
             onChange={(e) => set('description', e.target.value)}
           />
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <span className="text-small font-medium text-text-muted" id={f('color-label')}>
+            Color
+          </span>
+          <ColorPicker value={color} onChange={setColor} labelledBy={f('color-label')} />
         </div>
 
         <div className="flex flex-col gap-1.5">

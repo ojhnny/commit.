@@ -1,6 +1,7 @@
 import { toDateKey } from '@/domain/dates'
 import { applyGoalChange, normalizeSchedule } from '@/domain/scheduling'
-import type { DateKey, GoalVersion, Habit, HabitLog } from '@/domain/types'
+import { NOTE_BODY_MAX, NOTE_TITLE_MAX } from '@/domain/notes'
+import type { DateKey, GoalVersion, Habit, HabitLog, HabitNote } from '@/domain/types'
 import { buildSampleData } from './demoData'
 import {
   type BackupFile,
@@ -9,6 +10,7 @@ import {
   type HabitRepository,
   type LogInput,
   type NewHabitInput,
+  type NoteInput,
   type Snapshot,
 } from './habitRepository'
 
@@ -25,6 +27,20 @@ interface StoredState {
   version: 1
   habits: Habit[]
   logs: HabitLog[]
+  /** Missing in data saved before notes existed. */
+  notes?: HabitNote[]
+}
+
+function validNoteInput(input: Partial<NoteInput>): void {
+  if (input.title !== undefined && (typeof input.title !== 'string' || input.title.length > NOTE_TITLE_MAX))
+    throw new RepositoryError('invalid', `Keep the title under ${NOTE_TITLE_MAX} characters.`)
+  if (input.body !== undefined && (typeof input.body !== 'string' || input.body.length > NOTE_BODY_MAX))
+    throw new RepositoryError('invalid', 'This note is too long to save.')
+}
+
+function isNote(n: unknown): n is HabitNote {
+  const x = n as Partial<HabitNote> | null
+  return !!x && typeof x.id === 'string' && typeof x.habitId === 'string' && typeof x.title === 'string' && typeof x.body === 'string'
 }
 
 export interface RepositoryOptions {
@@ -76,11 +92,12 @@ export class LocalStorageHabitRepository implements HabitRepository {
       throw new RepositoryError('storage', 'Browser storage is unavailable.')
     }
     if (raw === null) {
-      const initial: StoredState = { version: 1, habits: [], logs: [] }
+      const initial: StoredState = { version: 1, habits: [], logs: [], notes: [] }
       if (this.seedOnFirstRun) {
         const sample = buildSampleData(this.today(), this.now().toISOString())
         initial.habits = sample.habits
         initial.logs = sample.logs
+        initial.notes = sample.notes
       }
       this.write(initial)
       return initial
@@ -124,8 +141,8 @@ export class LocalStorageHabitRepository implements HabitRepository {
   // ---------------------------------------------------------------- reads
 
   async load(): Promise<Snapshot> {
-    const { habits, logs } = this.read()
-    return { habits, logs }
+    const { habits, logs, notes = [] } = this.read()
+    return { habits, logs, notes }
   }
 
   // ---------------------------------------------------------------- habits
@@ -146,6 +163,7 @@ export class LocalStorageHabitRepository implements HabitRepository {
       createdAt: ts,
       updatedAt: ts,
       archivedAt: null,
+      ...(input.color ? { color: input.color } : {}),
     }
     state.habits.push(habit)
     this.write(state)
@@ -157,6 +175,7 @@ export class LocalStorageHabitRepository implements HabitRepository {
       let next: Habit = { ...h }
       if (patch.name !== undefined) next.name = patch.name.trim()
       if (patch.description !== undefined) next.description = patch.description.trim() || undefined
+      if (patch.color !== undefined) next.color = patch.color ?? undefined
       if (patch.startDate !== undefined && patch.startDate !== h.startDate) {
         next.startDate = patch.startDate
         next.goalVersions = rebaseGoalVersions(next.goalVersions, patch.startDate)
@@ -178,6 +197,11 @@ export class LocalStorageHabitRepository implements HabitRepository {
     })
   }
 
+  /** Obsidian plugin: remembers which vault folder holds a habit's note files (undefined clears it). */
+  async setNotesFolder(id: string, folder: string | undefined): Promise<Habit> {
+    return this.mutateHabit(id, (h) => ({ ...h, notesFolder: folder }))
+  }
+
   async archiveHabit(id: string): Promise<Habit> {
     return this.mutateHabit(id, (h) => ({ ...h, archivedAt: this.stamp() }))
   }
@@ -191,6 +215,7 @@ export class LocalStorageHabitRepository implements HabitRepository {
     if (!state.habits.some((h) => h.id === id)) throw new RepositoryError('not-found', 'Habit not found.')
     state.habits = state.habits.filter((h) => h.id !== id)
     state.logs = state.logs.filter((l) => l.habitId !== id)
+    state.notes = (state.notes ?? []).filter((n) => n.habitId !== id)
     this.write(state)
   }
 
@@ -234,6 +259,44 @@ export class LocalStorageHabitRepository implements HabitRepository {
     this.write(state)
   }
 
+  // ---------------------------------------------------------------- notes
+
+  async createNote(habitId: string, input: NoteInput): Promise<HabitNote> {
+    validNoteInput(input)
+    const state = this.read()
+    if (!state.habits.some((h) => h.id === habitId)) throw new RepositoryError('not-found', 'Habit not found.')
+    const ts = this.stamp()
+    const note: HabitNote = { id: this.newId(), habitId, title: input.title.trim(), body: input.body, createdAt: ts, updatedAt: ts }
+    state.notes = [...(state.notes ?? []), note]
+    this.write(state)
+    return note
+  }
+
+  async updateNote(noteId: string, patch: Partial<NoteInput>): Promise<HabitNote> {
+    validNoteInput(patch)
+    const state = this.read()
+    const notes = state.notes ?? []
+    const idx = notes.findIndex((n) => n.id === noteId)
+    const current = notes[idx]
+    if (!current) throw new RepositoryError('not-found', 'Note not found.')
+    const next: HabitNote = {
+      ...current,
+      ...(patch.title !== undefined && { title: patch.title.trim() }),
+      ...(patch.body !== undefined && { body: patch.body }),
+      updatedAt: this.stamp(),
+    }
+    notes[idx] = next
+    state.notes = notes
+    this.write(state)
+    return next
+  }
+
+  async deleteNote(noteId: string): Promise<void> {
+    const state = this.read()
+    state.notes = (state.notes ?? []).filter((n) => n.id !== noteId)
+    this.write(state)
+  }
+
   // ---------------------------------------------------------------- prototype helpers
 
   async removeSampleData(): Promise<void> {
@@ -241,6 +304,7 @@ export class LocalStorageHabitRepository implements HabitRepository {
     const sampleIds = new Set(state.habits.filter((h) => h.isSample).map((h) => h.id))
     state.habits = state.habits.filter((h) => !sampleIds.has(h.id))
     state.logs = state.logs.filter((l) => !sampleIds.has(l.habitId))
+    state.notes = (state.notes ?? []).filter((n) => !sampleIds.has(n.habitId))
     this.write(state)
   }
 
@@ -252,12 +316,13 @@ export class LocalStorageHabitRepository implements HabitRepository {
     const offset = withoutSample.length
     state.habits = [...withoutSample, ...sample.habits.map((h) => ({ ...h, order: h.order + offset }))]
     state.logs = [...state.logs.filter((l) => keptIds.has(l.habitId)), ...sample.logs]
+    state.notes = [...(state.notes ?? []).filter((n) => keptIds.has(n.habitId)), ...sample.notes]
     this.write(state)
   }
 
   async exportData(): Promise<BackupFile> {
-    const { habits, logs } = this.read()
-    return { app: 'commit', version: 1, exportedAt: this.stamp(), habits, logs }
+    const { habits, logs, notes = [] } = this.read()
+    return { app: 'commit', version: 1, exportedAt: this.stamp(), habits, logs, notes }
   }
 
   async importData(backup: unknown): Promise<void> {
@@ -270,13 +335,15 @@ export class LocalStorageHabitRepository implements HabitRepository {
       Array.isArray(b.habits) &&
       Array.isArray(b.logs) &&
       b.habits.every((h) => typeof h?.id === 'string' && typeof h?.name === 'string' && Array.isArray(h?.goalVersions) && h.goalVersions.length > 0) &&
-      b.logs.every((l) => typeof l?.habitId === 'string' && typeof l?.date === 'string' && typeof l?.value === 'number')
+      b.logs.every((l) => typeof l?.habitId === 'string' && typeof l?.date === 'string' && typeof l?.value === 'number') &&
+      (b.notes === undefined || (Array.isArray(b.notes) && b.notes.every(isNote)))
     if (!ok) throw new RepositoryError('invalid', "That file isn't a commit. backup.")
-    this.write({ version: 1, habits: b.habits!, logs: b.logs! })
+    const ids = new Set(b.habits!.map((h) => h.id))
+    this.write({ version: 1, habits: b.habits!, logs: b.logs!, notes: (b.notes ?? []).filter((n) => ids.has(n.habitId)) })
   }
 
   async resetAll(): Promise<void> {
-    this.write({ version: 1, habits: [], logs: [] })
+    this.write({ version: 1, habits: [], logs: [], notes: [] })
   }
 }
 

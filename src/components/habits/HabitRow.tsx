@@ -1,5 +1,5 @@
 import { ArrowDown, ArrowRight, ArrowUp, ChevronDown } from 'lucide-react'
-import { memo, useId, useMemo } from 'react'
+import { memo, useId, useMemo, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { formatPercent } from '@/domain/consistency'
 import { recentDays, type LogIndex } from '@/domain/progress'
@@ -13,6 +13,8 @@ import { StatusDot } from '@/components/heatmap/StatusDot'
 import { WeekPreview } from '@/components/heatmap/WeekPreview'
 import { describeDay } from '@/components/heatmap/describe'
 import { cn } from '@/lib/utils'
+import { ColorDot } from './ColorPicker'
+import { TimerChip } from './HabitTimer'
 import { ProgressLogger } from './ProgressLogger'
 
 interface HabitRowProps {
@@ -22,6 +24,8 @@ interface HabitRowProps {
   expanded: boolean
   onToggle: () => void
   reorder?: { onUp?: () => void; onDown?: () => void }
+  /** Drag grip shown at the right end of the row. */
+  dragHandle?: ReactNode
 }
 
 function shortToday(habit: Habit, status: string, value: number, today: DateKey): string {
@@ -37,7 +41,7 @@ function shortToday(habit: Habit, status: string, value: number, today: DateKey)
  * Collapsible list row (dashboard "List" view). Collapsed: one scannable line.
  * Expanded: recent weeks, stats and today's logger without leaving the dashboard.
  */
-export const HabitRow = memo(function HabitRow({ habit, logs, today, expanded, onToggle, reorder }: HabitRowProps) {
+export const HabitRow = memo(function HabitRow({ habit, logs, today, expanded, onToggle, reorder, dragHandle }: HabitRowProps) {
   const panelId = useId()
   const goal = currentGoal(habit, today)
   const stats = useMemo(() => computeHabitStats(habit, logs, today), [habit, logs, today])
@@ -57,11 +61,15 @@ export const HabitRow = memo(function HabitRow({ habit, logs, today, expanded, o
         >
           <ChevronDown aria-hidden className={cn('size-4 shrink-0 text-text-muted transition-transform duration-150', !expanded && '-rotate-90')} />
           <span className="min-w-0 flex-1">
-            <span className="block truncate text-[15px] leading-5 font-medium text-text">{habit.name}</span>
+            <span className="flex items-center gap-2 text-[15px] leading-5 font-medium text-text">
+              <ColorDot color={habit.color} />
+              <span className="truncate">{habit.name}</span>
+            </span>
             <span className="mt-0.5 flex min-w-0 items-center gap-1.5 text-small text-text-muted">
               <StatusDot status={t.status} />
               <span className="tabular truncate">{shortToday(habit, t.status, t.value, today)}</span>
               <span className="sr-only">. {describeDay(t).status}</span>
+              <TimerChip habitId={habit.id} className="ml-1.5" />
             </span>
           </span>
           <span className="hidden sm:block">
@@ -72,6 +80,7 @@ export const HabitRow = memo(function HabitRow({ habit, logs, today, expanded, o
             <span className="block text-micro text-text-faint">{stats.current}d streak</span>
           </span>
         </button>
+        {!reorder && dragHandle && <div className="shrink-0 pr-2 sm:pr-3">{dragHandle}</div>}
         {reorder && (
           <div className="flex shrink-0 gap-0.5 pr-2">
             <Button variant="ghost" size="icon-sm" aria-label={`Move ${habit.name} up`} disabled={!reorder.onUp} onClick={reorder.onUp}>

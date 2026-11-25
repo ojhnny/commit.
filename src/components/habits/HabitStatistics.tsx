@@ -1,9 +1,25 @@
 import { formatPercent } from '@/domain/consistency'
 import type { HabitStats } from '@/domain/stats'
+import { formatDateMedium } from '@/domain/dates'
+import { formatHours, type TimeTotals } from '@/domain/time'
+
+interface StatItem {
+  label: string
+  value: string
+  unit?: string
+  hint: string
+}
 
 /** Compact stat strip — plain text with dividers, not oversized cards (DESIGN.md §9). */
-export function HabitStatistics({ stats }: { stats: HabitStats }) {
-  const items = [
+export function HabitStatistics({
+  stats,
+  time,
+}: {
+  stats: HabitStats
+  /** Time spent, for habits measured in minutes or hours (DESIGN.md §8 Time spent). */
+  time?: { totals: TimeTotals; todayHint: string; startDate: string }
+}) {
+  const items: StatItem[] = [
     {
       label: 'Consistency',
       value: formatPercent(stats.consistency),
@@ -20,8 +36,17 @@ export function HabitStatistics({ stats }: { stats: HabitStats }) {
       hint: stats.partialDays ? `+ ${stats.partialDays} partial` : stats.missedDays ? `${stats.missedDays} missed` : 'Target reached',
     },
   ]
+  if (time) {
+    const { totals, todayHint, startDate } = time
+    items.push(
+      { label: 'Today', value: formatHours(totals.today), hint: todayHint },
+      { label: 'This week', value: formatHours(totals.week), hint: 'Since Sunday' },
+      { label: 'This month', value: formatHours(totals.month), hint: 'Calendar month to date' },
+      { label: 'Total time', value: formatHours(totals.total), hint: `Since ${formatDateMedium(startDate).replace(/^\w+, /, '')}` },
+    )
+  }
   return (
-    <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-border bg-border md:grid-cols-4">
+    <dl aria-label="Statistics" className="grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-border bg-border md:grid-cols-4">
       {items.map((item) => (
         <div key={item.label} className="flex flex-col gap-0.5 bg-surface px-4 py-3">
           <dt className="text-small text-text-muted">{item.label}</dt>

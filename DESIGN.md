@@ -62,6 +62,7 @@ All colors live in `src/design/tokens.ts` (platform-neutral, shareable with a fu
 | `orange` | `#DA8B36` | Missed state, warnings |
 | `danger` | `#E5534B` | Destructive text and menu items |
 | `danger-strong` | `#C0392F` | Filled destructive button (white text 5.4:1) |
+| `timer` | `#E8713F` | The habit timer only: its dot, the stop square and the "Add" button (dark text on it, 6.4:1). One warm accent, flat, no gradient or glow. |
 
 ### Heatmap states
 
@@ -74,6 +75,23 @@ All colors live in `src/design/tokens.ts` (platform-neutral, shareable with a fu
 | Exceeded | `#116329` | progress > target |
 
 Today's cell always gets a 1px `text-muted` inset ring so it can be found at a glance.
+
+### Habit colors
+
+Each habit may have one color, picked from a fixed set of eight so they stay easy to tell apart. The color is a label only: it appears as an 8px dot before the habit's name (card, list row, habit page title, archive) and never changes the heatmap, whose colors always mean status.
+
+| Name | Hex |
+|---|---|
+| Red | `#F47067` |
+| Orange | `#E0823D` |
+| Yellow | `#D4B13F` |
+| Green | `#57AB5A` |
+| Teal | `#39C5CF` |
+| Blue | `#539BF5` |
+| Purple | `#B083F0` |
+| Pink | `#E275AD` |
+
+"None" is the default and shows no dot. All eight are ≥3:1 against `surface`, which is enough for a non-text marker.
 
 ### Contrast notes
 
@@ -158,6 +176,8 @@ All interactive primitives are shadcn/ui-style components built on Radix (and Va
 - 7-day preview: last 7 days ending today, 14px squares with weekday initial underneath.
 - Today status: dot + text ("Done", "1.5 / 2 hours", "Not logged", "Rest day", "Missed" never applies to today).
 - Navigation indicator: a muted chevron on the right.
+- Color dot (if the habit has a color) before the name.
+- Drag handle: a 6-dot grip (`GripVertical`) in the top-right corner replaces the chevron. Drag a card by its grip to move it; the other cards slide out of the way and the new order saves on drop. On touch, the grip responds after a short press so scrolling the list never drags. With a keyboard, focus the grip, press Space to pick up, arrow keys to move, Space to drop, Esc to cancel. In list view the grip sits at the right end of each row.
 
 ### Activity heatmap
 
@@ -169,6 +189,81 @@ All interactive primitives are shadcn/ui-style components built on Radix (and Va
 - Desktop hover → floating tooltip (one shared element, not one per cell). Click / Enter → day sheet.
 - Keyboard: the grid is one tab stop (roving tabindex). Arrow keys move ±1 day / ±1 week, Home/End jump to week edge, Enter/Space opens the day.
 
+### Time spent
+
+Hours are counted from logs on days whose goal is time-based (`minutes` or `hours`); minutes are converted to hours. Other units (pages, problems, yes/no, custom) have no duration and are left out, never guessed. Weeks start on Sunday (like the graph); "this month" is the calendar month to date. Archived habits still count, because the time was really spent.
+
+- **Format:** under one hour → minutes ("45 min"); otherwise hours with at most one decimal ("2.5 h", "186 h"). Always tabular numbers.
+- **Habit page (time-based habits only):** a second row in the stats strip, same style as the first: **Today · This week · This month · Total time**, each with a quiet hint ("of 2 h goal", "since Jan 28"). Habits that were never time-based don't show the row.
+- **Dashboard:** one muted line under the "2 of 5 done today" summary: `Time spent  2.5 h today · 9 h this week · 31 h this month`, totals across all time-based habits. Hidden when no habit is time-based. Hovering (or long-press) is not needed; the line is the whole feature.
+
+### Habit timer
+
+Time-based habits (`minutes` or `hours`, not archived, already started) get a timer to the right of the habit's title (full width under the description on phones). Approved mockups: `screenshots/timer-archive-mockups-v2/`.
+
+- **Idle:** outlined pill, a small `timer` dot and "Start timer".
+- **Running:** the pill shows a softly blinking `timer` dot, the elapsed time (`mm:ss`, `h:mm:ss` past an hour, tabular), a ghost Pause button and a Stop button with a `timer`-colored square.
+- **Paused:** the dot turns `text-faint`, the time goes `text-muted` with "Paused" after it, and Pause becomes Play.
+- **Stop** pauses the timer and opens a dialog (sheet on phones): the elapsed time large, an **Add to today** stepper (rounded minutes, − and + by 1 min; in hours habits the amount is converted), one line "Today becomes 1.9 h of your 2 h goal.", and buttons **Discard** (left, destructive text), **Keep timing** and **Add N min** (`timer` fill). Add saves through the normal log path, so stats, heatmap and dashboard update at once, with the usual Undo toast. Discard also has Undo. Closing the dialog leaves the timer paused.
+- The timer survives leaving the page, closing the tab or reloading (it stores its start time, not a ticking count, in this device's storage). Each habit has its own timer. A running timer also shows as a small dot and time on the habit's dashboard card or row.
+
+### Archive page
+
+`/archive`, opened from an **Archive** ghost button (icon + label + count; icon + count on phones) in the dashboard header next to `⋯`. Same header pattern as the habit page (back to Habits).
+
+- Title "Archive" and one line of explanation, then one bordered list: each row has the color dot and name (a link to the habit page), then a muted line `start – archived date · N days completed · NN% consistency · total time (time-based only) · N notes`, and two buttons: **Restore** (outline) and **Delete** (destructive text).
+- Delete opens the confirm dialog ("Delete Spanish?", naming the days of history and notes that will go, button "Delete forever").
+- Empty state: "Nothing archived. Archive a habit from its ⋯ menu to keep its history without it on your dashboard."
+- The collapsible "Archived (n)" section at the bottom of the dashboard is replaced by a quiet link to this page.
+
+### Habit notes
+
+Each habit has its own set of markdown notes (plans, resources, reflections), kept like documents in a folder: several per habit, each with a title and a body, sorted by last edit.
+
+- **Entry point:** a `Notes` toggle button in the habit page header, between the habit switcher and the `⋯` menu. It shows the note count (`Notes 3`) and is `aria-pressed` while the notes view is open; pressed state uses `surface-3` + `text`. Below 640px the word "Notes" is hidden (icon + count only, with an `aria-label`) so the truncated habit name keeps its room. Pressing it again (or the header's back link) returns to the habit view.
+- **Routes:** `/habits/:id/notes` (list) and `/habits/:id/notes/:noteId` (one note), so browser Back and links work. Previous/next habit arrows keep the current view (habit ↔ habit, notes ↔ notes).
+- **What stays:** the title block (name, target · schedule) stays at the top in both views so the user always knows which habit they're in. Stats, heatmap and Today are replaced by the notes view.
+
+**Notes list (Drive-style)**
+
+```
+┌───────────────────────────────────────────────┐
+│ Notes  3                        [ + New note ] │
+├───────────────────────────────────────────────┤
+│ Study plan                      Edited 2h ago ⋯│
+│ Week 1: linear models, week 2: trees…         │
+├───────────────────────────────────────────────┤
+│ Resources                     Edited Nov 20  ⋯│
+│ - Elements of Statistical Learning            │
+└───────────────────────────────────────────────┘
+```
+
+- One `Section` panel. Header: "Notes" plus a muted count, and a primary `New note` button (`+` icon only below 380px).
+- Rows separated by `border-subtle` dividers (no cards inside the panel). Each row: title (body, 500, one line, truncated), a one-line plain-text snippet of the body in `text-muted` (markdown syntax stripped), and the edit time on the right in `small`/`text-faint` ("Edited just now", "Edited 2h ago", "Edited Nov 20", "Edited Nov 20, 2025" for other years). The whole row is a link; the `⋯` menu (Open, Delete) sits above the link layer, like habit cards.
+- Untitled notes show "Untitled" in `text-muted`. Empty notes show "Empty note" as the snippet.
+- Sorted by last edited, newest first. No folders, tags or search yet.
+- Empty state: the shared `EmptyState` with "No notes yet", body "Keep plans, resources and reflections for this habit. Notes are written in Markdown.", and a `New note` button.
+
+**Note editor**
+
+```
+┌───────────────────────────────────────────────┐
+│ ‹ All notes            Saved    [Write|Preview] ⋯│
+├───────────────────────────────────────────────┤
+│ Study plan                                    │  ← title input, 20/600, borderless
+│                                               │
+│ ## Week 1                                     │  ← body textarea, grows with content
+│ - Linear regression                           │
+└───────────────────────────────────────────────┘
+```
+
+- One `Section`-style panel. Header row: `‹ All notes` ghost link, a save status in `small`/`text-faint` (`Saving…` → `Saved`, or `Couldn't save · Retry` in `danger`), a `Write | Preview` segmented control, and `⋯` (Delete note; in Obsidian also "Open in Obsidian").
+- Title: borderless input on `surface`, page-title size (20/600, 18 on mobile), placeholder "Untitled", max 120 characters. Enter in the title moves focus to the body.
+- Body: borderless textarea, body size 14/22 for comfortable reading, auto-grows (min 320px), placeholder "Write in Markdown…". It is the only scroll; no inner scrollbars.
+- Preview: rendered markdown in the same panel, styled with the type scale (headings capped at 20/16/14, weight 600/500), links in `green` with underline, code on `surface-2`, blockquotes with a 2px `border` rule, task lists as read-only checkboxes. Raw HTML is sanitized.
+- New notes open straight in Write with the title focused.
+- Max width of the text column 720px for line length; the panel itself is full width.
+
 ## 9. Layouts
 
 ### Desktop (≥1024)
@@ -176,6 +271,8 @@ All interactive primitives are shadcn/ui-style components built on Radix (and Va
 - **Dashboard:** header row (wordmark + tagline left, `⋯` menu and `+ New habit` right). Habit cards in a 2-column grid (3 columns ≥1280). Archived habits collapsed under a quiet "Archived (n)" disclosure at the bottom.
 - **Dashboard views:** a Grid / List toggle (remembered per browser). *Grid* shows the cards above. *List* shows one collapsible row per habit (name, today's status, 7-day strip, consistency, streak); expanding a row reveals a recent-weeks mini graph, compact stats, a link to the full history, and today's logger. "Expand all / Collapse all" sits next to the toggle. A today summary ("2 of 5 done today") with one segment per due habit sits above both views.
 - **Habit page:** back link, previous/next habit arrows and overflow menu row; title block (name, target · schedule, description); one-line stats strip (4 stats, separated by thin dividers, not cards); heatmap panel (full width) titled with the GitHub-style yearly count ("83 days completed in 2026"); below it a full-width "Today" panel whose logger puts the amount and the note side by side on ≥768px.
+
+- **Habit page, notes view:** same header and title block; below it one full-width notes panel (list or editor). On mobile the editor's segmented control and status move under the `‹ All notes` row so nothing wraps awkwardly at 320px.
 
 ### Tablet (640–1023)
 
@@ -191,15 +288,19 @@ All interactive primitives are shadcn/ui-style components built on Radix (and Va
 ## 10. Interaction patterns
 
 - **Create habit:** `+ New habit` → dialog/sheet. Fields: name, description (optional), type (Amount / Yes-no), target + unit, repeat (Every day / Weekdays / Weekends / Custom + weekday selector), start date (defaults to today). Enter submits. Invalid fields show inline messages under the field and `aria-invalid`.
-- **Log progress (amount):** segmented "Set total | Add". Helper line states the result ("New total: 90 / 120 minutes"). `Save` commits. `Mark complete` sets the total to the target in one tap. "Quick add" chips sized to the unit (+15/+30/+60 min, +0.25/+0.5/+1 h, +1 for small counts) add and save in one tap. `Clear entry` removes the day's log. Note field optional.
+- **Log progress (amount):** segmented "Set total | Add". Helper line states the result ("New total: 90 / 120 minutes"). `Save` commits (in Add mode the button says `Add progress`). `Mark complete` sets the total to the target in one tap. "Quick add" chips sized to the unit (+15/+30/+60 min, +0.25/+0.5/+1 h, +1 for small counts) add and save in one tap. `Clear entry` removes the day's log. Note field optional.
 - **Undo:** every log, quick add, completion toggle and cleared entry shows a toast with **Undo**, which restores the previous entry exactly. This replaces confirmations for ordinary actions.
 - **Keyboard:** `N` opens New habit on the dashboard (ignored while typing or when a dialog is open).
 - **Log progress (yes/no):** single toggle button "Mark complete" ↔ "Completed · Undo".
 - **Edit history:** click any past or today cell → day sheet with the same logger. Future dates and dates before the start date are read-only.
 - **Edit habit:** overflow → Edit. Changing target/unit/schedule creates a new goal version effective today; a hint explains past days keep their original goal.
-- **Archive / restore / delete:** only in the habit page overflow menu. Archive is instant (toast with Undo). Delete requires a confirm dialog that names the habit.
-- **Reorder:** dashboard `⋯` → "Reorder habits" toggles move-up/move-down buttons on cards; "Done" exits. No drag-and-drop in Phase 1.
+- **Archive / restore / delete:** archive from the habit page overflow menu (instant, toast with Undo). Restore and delete from the habit page or the Archive page. Delete always requires a confirm dialog that names the habit.
+- **Reorder:** drag a card or row by its grip (see Habit card). Dashboard `⋯` → "Reorder habits" still offers move-up/move-down buttons as an alternative; "Done" exits.
+- **Color:** the habit dialog has a **Color** row of nine swatches (None + the eight habit colors), 28px circles (36px on touch), a radio group with the color names as labels; the selected one gets a 2px `text` ring.
+- **Timer:** see Habit timer (§8).
 - **Feedback:** every save shows a short toast; the heatmap, stats, bar and dashboard preview update immediately from shared state.
+- **Notes:** `New note` creates an untitled note and opens it. Edits save automatically 600ms after typing stops, on blur, on leaving the note, and on Cmd/Ctrl+S; there is no Save button and no toast for autosave. Deleting a note (row `⋯` or editor `⋯`) is instant with an **Undo** toast, like other ordinary actions. A note that is still empty when you leave it is discarded silently. Deleting a habit also deletes its notes, and the confirm dialog says so.
+- **Notes and other devices:** if a note changes elsewhere while it is open and you have no unsaved edits, the editor takes the new text. If you do have unsaved edits, yours win on the next save (last write wins; personal app).
 - **No confirmations** for ordinary actions (logging, archiving, editing).
 
 ## 11. Accessibility
@@ -235,8 +336,20 @@ Touch sizing is driven by `pointer: coarse`, not width, so a touch laptop still 
 7. New screens must be checked at 320, 390, 768 and 1280 widths before merging.
 8. Changes to this document are recorded below.
 
+## 14. Where notes are stored
+
+| Version | Storage |
+|---|---|
+| Browser-only web app | Inside the same localStorage data as habits and logs, and in backup files (`notes` array; files without it still import). |
+| Account (API) | `habit_notes` table (id, habit, title ≤120, markdown body ≤100,000 characters, timestamps); included in the snapshot, export and import. |
+| Obsidian plugin | Real Markdown files in the vault: `commit/notes/<habit name>/<note title>.md` (the root folder is a setting). The file name is the title and the file content is the body, with no frontmatter added, so the notes behave like any other note: search, links, backlinks, graph and the normal editor all work. Renaming a note renames its file (links update); renaming a habit renames its folder. The habit ↔ folder link is stored on the habit in `habits.json`; if you rename or move the folder inside Obsidian, the plugin follows it. Files edited outside commit. show up immediately. Deleting a note or habit moves files to the trash, following Obsidian's "Deleted files" setting. Backups saved to the vault contain habits and logs only; restoring a web backup that has notes writes them as files. |
+
 ## Changelog
 
 - 2026-11-24 — Initial version for the Phase 1 prototype.
 - 2026-11-24 — Removed "Recent activity" from the habit page (low value; the heatmap and day sheet cover it). Added dashboard List view with collapsible rows, today summary bar, quick-add chips, Undo toasts, yearly count on the heatmap, previous/next habit navigation and the `N` shortcut.
 - 2026-11-24 — Phase 2: added the sign-in screen (wordmark, 4-week heat preview, Sign in / Create account segmented control, single card form, cold-start notice), the "saved only in this browser" banner with Move to account, account email and Sign out in the dashboard ⋯ menu, and account-aware footer and confirm copy. "Prototype data" menu label renamed "Sample data".
+- 2026-11-24 — Obsidian plugin: the same screens run inside an Obsidian view. Width breakpoints (`sm`/`md`/`lg`/`xl`) follow the pane's width (container queries) instead of the window, so the app also works in a sidebar. Dialogs, sheets, menus, tooltips and toasts render in a full-window layer. "Download backup" becomes "Save backup to vault", and the footer names the data file in the vault. The sign-in screen and the "saved only in this browser" banner are not part of the plugin.
+- 2026-11-24 — Habit notes: a `Notes` toggle on the habit page switches to a Drive-style list of markdown notes per habit (title, snippet, last edited), with an autosaving editor (Write / Preview), Undo on delete, and routes `/habits/:id/notes[/:noteId]`. In Obsidian, notes are real `.md` files in `commit/notes/<habit>/` (§14).
+- 2026-11-25 — Time spent: total hours per time-based habit (a second stats row on the habit page: today, this week, this month, total) and across all habits on the dashboard (today, this week, this month).
+- 2026-11-25 — Habit timer (flat warm `timer` accent, Stop → add the time to today), Archive page with Restore and Delete (replaces the collapsible archived section), habit colors (eight label colors, shown as a dot), drag-to-reorder by a grip in the card corner, and the amount logger's "Save total" button renamed "Save".
